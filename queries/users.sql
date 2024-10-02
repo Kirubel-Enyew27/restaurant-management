@@ -9,6 +9,16 @@ SELECT user_id, username, email, password, created_at
 FROM users
 WHERE user_id = $1;
 
+-- name: GetUserByUsername :one
+SELECT user_id, username, email, password, created_at
+FROM users
+WHERE username = $1;
+
+-- name: GetUserByEmail :one
+SELECT user_id, username, email, password, created_at
+FROM users
+WHERE email = $1;
+
 -- name: DeleteUser :exec
 DELETE FROM users
 WHERE user_id = $1;
