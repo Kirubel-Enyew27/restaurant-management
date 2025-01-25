@@ -12,25 +12,18 @@ import (
 )
 
 type Meal struct {
-	MealID    int32
+	MealID    uuid.UUID
 	Name      string
 	Price     decimal.Decimal
 	Available sql.NullBool
 	CreatedAt sql.NullTime
 }
 
-type Order struct {
-	OrderID    int32
-	UserID     sql.NullInt32
-	TotalPrice decimal.Decimal
-	Status     string
-	OrderDate  sql.NullTime
-}
-
 type User struct {
-	Username  string
-	Email     string
-	Password  string
-	CreatedAt sql.NullTime
-	UserID    uuid.NullUUID
+	UserID     uuid.UUID
+	Username   string
+	Email      string
+	Password   string
+	CreatedAt  sql.NullTime
+	ModifiedAt sql.NullTime
 }
