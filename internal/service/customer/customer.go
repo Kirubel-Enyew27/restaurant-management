@@ -78,7 +78,7 @@ func (c *Customer) Login(ctx context.Context, user db.User) (string, error) {
 	}
 
 	expirationTime := time.Now().Add(constant.TokenExpiration)
-	token, err := utils.GenerateJWT(user.UserID.UUID.String(), expirationTime)
+	token, err := utils.GenerateJWT(user.UserID.String(), expirationTime)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate JWT: %w", err)
 	}
