@@ -79,3 +79,26 @@ func (c *customer) GetUserByEmail(ctx context.Context, email string) (db.User, e
 
 	return existingUser, nil
 }
+
+func (c *customer) GetCustomers(ctx context.Context) ([]db.User, error) {
+	users, err := c.db.Queries.ListUsers(ctx)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, fmt.Errorf("no users found: %w", err)
+		}
+		return nil, fmt.Errorf("failed to fetch users: %w", err)
+	}
+
+	fetchedUsers := make([]db.User, len(users))
+
+	for i, user := range users {
+		fetchedUsers[i] = db.User{
+			UserID:   user.UserID,
+			Username: user.Username,
+			Password: user.Password,
+			Email:    user.Email,
+		}
+	}
+
+	return fetchedUsers, nil
+}

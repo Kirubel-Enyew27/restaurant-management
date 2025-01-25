@@ -28,6 +28,9 @@ func Init(log *zap.Logger, customerModule service.Customer,
 }
 
 func (cstmr *customer) Register(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), cstmr.contextTimeout)
+	defer cancel()
+
 	var req db.User
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -37,7 +40,7 @@ func (cstmr *customer) Register(c *gin.Context) {
 		return
 	}
 
-	newUser, err := cstmr.customerModule.Register(context.Background(), db.User{
+	newUser, err := cstmr.customerModule.Register(ctx, db.User{
 		Username: req.Username,
 		Email:    req.Email,
 		Password: req.Password,
@@ -56,6 +59,9 @@ func (cstmr *customer) Register(c *gin.Context) {
 }
 
 func (cstmr *customer) Login(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), cstmr.contextTimeout)
+	defer cancel()
+
 	var req db.User
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -65,7 +71,7 @@ func (cstmr *customer) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := cstmr.customerModule.Login(context.Background(), db.User{
+	token, err := cstmr.customerModule.Login(ctx, db.User{
 		Username: req.Username,
 		Password: req.Password,
 	})
@@ -83,4 +89,20 @@ func (cstmr *customer) Login(c *gin.Context) {
 	})
 }
 
-func (cstmr *customer) GetCustomers(ctx *gin.Context) {}
+func (cstmr *customer) GetCustomers(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), cstmr.contextTimeout)
+	defer cancel()
+
+	users, err := cstmr.customerModule.GetCustomers(ctx)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"message": "users fetched successffuly",
+		"users":   users,
+	})
+}
