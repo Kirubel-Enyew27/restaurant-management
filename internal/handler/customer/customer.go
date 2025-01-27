@@ -67,7 +67,7 @@ func (cstmr *customer) Login(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"error": "invalid request: " + err.Error(),
 		})
 		return
 	}
@@ -79,7 +79,7 @@ func (cstmr *customer) Login(c *gin.Context) {
 
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"error": "unable to login: " + err.Error(),
 		})
 		return
 	}
@@ -97,7 +97,7 @@ func (cstmr *customer) GetCustomers(c *gin.Context) {
 	users, err := cstmr.customerModule.GetCustomers(ctx)
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{
-			"error": err.Error(),
+			"error": "failed to fetch customers: " + err.Error(),
 		})
 		return
 	}
@@ -116,7 +116,7 @@ func (cstmr *customer) UpdateCustomer(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&reqBody); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request body",
+			"error": "Invalid request body: " + err.Error(),
 		})
 		return
 	}
@@ -126,7 +126,7 @@ func (cstmr *customer) UpdateCustomer(c *gin.Context) {
 	updatedUser, err := cstmr.customerModule.UpdateUser(ctx, userID, reqBody)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to update user",
+			"error": "Failed to update user: " + err.Error(),
 		})
 		return
 	}
@@ -134,6 +134,26 @@ func (cstmr *customer) UpdateCustomer(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{
 		"message":      "user updated successfully",
 		"updated_user": updatedUser,
+	})
+
+}
+
+func (cstmr *customer) DeleteCustomer(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), cstmr.contextTimeout)
+	defer cancel()
+
+	userID := c.Param("id")
+
+	err := cstmr.customerModule.DeleteUser(ctx, userID)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{
+			"error": "failed to delete user: " + err.Error(),
+		})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"message": "user deleted successfully",
 	})
 
 }
