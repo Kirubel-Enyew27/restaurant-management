@@ -31,6 +31,12 @@ func InitRoute(group *gin.RouterGroup, h handler.Customer,
 			Handler:     h.GetCustomers,
 			Middlewares: []gin.HandlerFunc{},
 		},
+		{
+			Method:      http.MethodPatch,
+			Path:        "/customer/update/:id",
+			Handler:     h.UpdateCustomer,
+			Middlewares: []gin.HandlerFunc{},
+		},
 	}
 
 	routing.RegisterRoute(group, customerRoutes, log)
