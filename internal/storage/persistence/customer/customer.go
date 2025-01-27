@@ -104,6 +104,19 @@ func (c *customer) GetCustomers(ctx context.Context) ([]db.User, error) {
 	return fetchedUsers, nil
 }
 
+func (c *customer) GetCustomerByID(ctx context.Context, userID uuid.UUID) (db.User, error) {
+	user, err := c.db.Queries.GetUserByID(ctx, userID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return db.User{}, fmt.Errorf("user not found: %w", err)
+		}
+		return db.User{}, fmt.Errorf("failed to fetch user: %w", err)
+	}
+
+	return user, nil
+
+}
+
 func (c *customer) UpdateCustomer(ctx context.Context, user db.User) (db.User, error) {
 	updateParams := db.UpdateUserParams{
 		UserID:   user.UserID,
