@@ -114,5 +114,10 @@ func (c *Customer) DeleteUser(ctx context.Context, userID string) error {
 		return fmt.Errorf("invalid user ID: %w", err)
 	}
 
-	return c.storage.DeleteCustomer(ctx, userUUID)
+	user, err := c.storage.GetCustomerByID(ctx, userUUID)
+	if err != nil {
+		return err
+	}
+
+	return c.storage.DeleteCustomer(ctx, user.UserID)
 }
