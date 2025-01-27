@@ -22,13 +22,12 @@ WHERE email = $1;
 -- name: UpdateUser :one
 UPDATE users
 SET 
-    username = COALESCE($2, username), 
-    email = COALESCE($3, email), 
-    password = COALESCE($4, password),
-    created_at = COALESCE($5, created_at), 
-    modified_at = COALESCE($6, modified_at)
+    username = COALESCE(sqlc.narg('username'), username), 
+    email = COALESCE(sqlc.narg('email'), email), 
+    password = COALESCE(sqlc.narg('password'), password),
+    modified_at = now()
 WHERE user_id = $1
-RETURNING user_id, username, email, password, created_at, modified_at;
+RETURNING *;
 
 -- name: DeleteUser :exec
 DELETE FROM users

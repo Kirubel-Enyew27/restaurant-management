@@ -147,19 +147,16 @@ SET
     username = COALESCE($2, username), 
     email = COALESCE($3, email), 
     password = COALESCE($4, password),
-    created_at = COALESCE($5, created_at), 
-    modified_at = COALESCE($6, modified_at)
+    modified_at = now()
 WHERE user_id = $1
 RETURNING user_id, username, email, password, created_at, modified_at
 `
 
 type UpdateUserParams struct {
-	UserID     uuid.UUID
-	Username   string
-	Email      string
-	Password   string
-	CreatedAt  sql.NullTime
-	ModifiedAt sql.NullTime
+	UserID   uuid.UUID
+	Username sql.NullString
+	Email    sql.NullString
+	Password sql.NullString
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
@@ -168,8 +165,6 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		arg.Username,
 		arg.Email,
 		arg.Password,
-		arg.CreatedAt,
-		arg.ModifiedAt,
 	)
 	var i User
 	err := row.Scan(
