@@ -37,6 +37,12 @@ func InitRoute(group *gin.RouterGroup, h handler.Customer,
 			Handler:     h.UpdateCustomer,
 			Middlewares: []gin.HandlerFunc{},
 		},
+		{
+			Method:      http.MethodDelete,
+			Path:        "/customer/delete/:id",
+			Handler:     h.DeleteCustomer,
+			Middlewares: []gin.HandlerFunc{},
+		},
 	}
 
 	routing.RegisterRoute(group, customerRoutes, log)
