@@ -3,12 +3,14 @@ package service
 import (
 	"context"
 	"restaurant/internal/constant/model/db"
+	"restaurant/internal/constant/model/dto"
 )
 
 type Customer interface {
 	Register(ctx context.Context, user db.User) (db.User, error)
 	Login(ctx context.Context, user db.User) (string, error)
 	GetCustomers(ctx context.Context) ([]db.User, error)
+	UpdateUser(ctx context.Context, param string, req dto.UpdateRequest) (db.User, error)
 }
 type Order interface{}
 type Food interface{}

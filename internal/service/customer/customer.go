@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"restaurant/internal/constant"
 	"restaurant/internal/constant/model/db"
+	"restaurant/internal/constant/model/dto"
 	"restaurant/internal/service"
 	"restaurant/internal/storage"
 	"restaurant/utils"
@@ -13,6 +14,7 @@ import (
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -88,4 +90,20 @@ func (c *Customer) Login(ctx context.Context, user db.User) (string, error) {
 
 func (c *Customer) GetCustomers(ctx context.Context) ([]db.User, error) {
 	return c.storage.GetCustomers(ctx)
+}
+
+func (c *Customer) UpdateUser(ctx context.Context, userID string, req dto.UpdateRequest) (db.User, error) {
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return db.User{}, fmt.Errorf("invalid user ID: %w", err)
+	}
+
+	user := db.User{
+		UserID:   userUUID,
+		Username: req.Username,
+		Password: req.Password,
+		Email:    req.Email,
+	}
+
+	return c.storage.UpdateCustomer(ctx, user)
 }
