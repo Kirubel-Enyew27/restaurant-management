@@ -104,7 +104,6 @@ func (c *customer) GetCustomers(ctx context.Context) ([]db.User, error) {
 }
 
 func (c *customer) UpdateCustomer(ctx context.Context, user db.User) (db.User, error) {
-	// Prepare nullable fields
 	updateParams := db.UpdateUserParams{
 		UserID:   user.UserID,
 		Username: sql.NullString{}, // Default to an empty nullable string
@@ -123,7 +122,6 @@ func (c *customer) UpdateCustomer(ctx context.Context, user db.User) (db.User, e
 		updateParams.Email = sql.NullString{String: user.Email, Valid: true}
 	}
 
-	// Call the SQLC-generated UpdateUser function with the updateParams
 	updatedUser, err := c.db.Queries.UpdateUser(ctx, updateParams)
 	if err != nil {
 		return db.User{}, fmt.Errorf("error updating user: %w", err)
