@@ -2,6 +2,7 @@ package customer
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"restaurant/internal/constant/model/db"
 	"restaurant/internal/constant/model/persistencedb"
@@ -68,7 +69,6 @@ func (c *customer) GetUserByEmail(ctx context.Context, email string) (db.User, e
 	if err != nil && err != pgx.ErrNoRows {
 		return db.User{}, fmt.Errorf("failed to fetch user by email: %w", err)
 	}
-
 	existingUser := db.User{
 		UserID:    user.UserID,
 		Username:  user.Username,
@@ -101,4 +101,33 @@ func (c *customer) GetCustomers(ctx context.Context) ([]db.User, error) {
 	}
 
 	return fetchedUsers, nil
+}
+
+func (c *customer) UpdateCustomer(ctx context.Context, user db.User) (db.User, error) {
+	// Prepare nullable fields
+	updateParams := db.UpdateUserParams{
+		UserID:   user.UserID,
+		Username: sql.NullString{}, // Default to an empty nullable string
+		Password: sql.NullString{}, // Default to an empty nullable string
+		Email:    sql.NullString{}, // Default to an empty nullable string
+	}
+
+	// Set values if non-empty
+	if user.Username != "" {
+		updateParams.Username = sql.NullString{String: user.Username, Valid: true}
+	}
+	if user.Password != "" {
+		updateParams.Password = sql.NullString{String: user.Password, Valid: true}
+	}
+	if user.Email != "" {
+		updateParams.Email = sql.NullString{String: user.Email, Valid: true}
+	}
+
+	// Call the SQLC-generated UpdateUser function with the updateParams
+	updatedUser, err := c.db.Queries.UpdateUser(ctx, updateParams)
+	if err != nil {
+		return db.User{}, fmt.Errorf("error updating user: %w", err)
+	}
+
+	return updatedUser, nil
 }

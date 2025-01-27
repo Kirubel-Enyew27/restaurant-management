@@ -12,6 +12,7 @@ type Customer interface {
 	GetUserByUsername(ctx context.Context, username string) (db.User, error)
 	GetUserByEmail(ctx context.Context, email string) (db.User, error)
 	GetCustomers(ctx context.Context) ([]db.User, error)
+	UpdateCustomer(ctx context.Context, user db.User) (db.User, error)
 }
 type Price interface{}
 type FoodCache interface{}
