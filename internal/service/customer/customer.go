@@ -107,3 +107,12 @@ func (c *Customer) UpdateUser(ctx context.Context, userID string, req dto.Update
 
 	return c.storage.UpdateCustomer(ctx, user)
 }
+
+func (c *Customer) DeleteUser(ctx context.Context, userID string) error {
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return fmt.Errorf("invalid user ID: %w", err)
+	}
+
+	return c.storage.DeleteCustomer(ctx, userUUID)
+}
