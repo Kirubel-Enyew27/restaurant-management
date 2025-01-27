@@ -8,6 +8,7 @@ import (
 	"restaurant/internal/constant/model/persistencedb"
 	"restaurant/internal/storage"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 	"go.uber.org/zap"
 )
@@ -128,4 +129,14 @@ func (c *customer) UpdateCustomer(ctx context.Context, user db.User) (db.User, e
 	}
 
 	return updatedUser, nil
+}
+
+func (c *customer) DeleteCustomer(ctx context.Context, userID uuid.UUID) error {
+	err := c.db.Queries.DeleteUser(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("error deleting user: %w", err)
+	}
+
+	return nil
+
 }

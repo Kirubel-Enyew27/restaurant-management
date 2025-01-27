@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"restaurant/internal/constant/model/db"
 )
 
@@ -13,6 +14,7 @@ type Customer interface {
 	GetUserByEmail(ctx context.Context, email string) (db.User, error)
 	GetCustomers(ctx context.Context) ([]db.User, error)
 	UpdateCustomer(ctx context.Context, user db.User) (db.User, error)
+	DeleteCustomer(ctx context.Context, userID uuid.UUID) error
 }
 type Price interface{}
 type FoodCache interface{}
