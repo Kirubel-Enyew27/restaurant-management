@@ -35,6 +35,7 @@ func (cstmr *customer) Register(c *gin.Context) {
 	var req db.User
 
 	if err := c.ShouldBindJSON(&req); err != nil {
+		cstmr.logger.Info("invalid request body", zap.Error(err))
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "invalid request body: " + err.Error(),
 		})
@@ -47,6 +48,7 @@ func (cstmr *customer) Register(c *gin.Context) {
 		Password: req.Password,
 	})
 	if err != nil {
+		cstmr.logger.Info("registration failed", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "registration failed: " + err.Error(),
 		})
@@ -66,6 +68,7 @@ func (cstmr *customer) Login(c *gin.Context) {
 	var req db.User
 
 	if err := c.ShouldBindJSON(&req); err != nil {
+		cstmr.logger.Info("invalid request body", zap.Error(err))
 		c.IndentedJSON(http.StatusBadRequest, gin.H{
 			"error": "invalid request: " + err.Error(),
 		})
@@ -78,6 +81,7 @@ func (cstmr *customer) Login(c *gin.Context) {
 	})
 
 	if err != nil {
+		cstmr.logger.Info("unable to login", zap.Error(err))
 		c.IndentedJSON(http.StatusBadRequest, gin.H{
 			"error": "unable to login: " + err.Error(),
 		})
@@ -96,6 +100,7 @@ func (cstmr *customer) GetCustomers(c *gin.Context) {
 
 	users, err := cstmr.customerModule.GetCustomers(ctx)
 	if err != nil {
+		cstmr.logger.Info("failed to fetch customers", zap.Error(err))
 		c.IndentedJSON(http.StatusNotFound, gin.H{
 			"error": "failed to fetch customers: " + err.Error(),
 		})
@@ -115,8 +120,9 @@ func (cstmr *customer) UpdateCustomer(c *gin.Context) {
 	var reqBody dto.UpdateRequest
 
 	if err := c.ShouldBindJSON(&reqBody); err != nil {
+		cstmr.logger.Info("invalid request body", zap.Error(err))
 		c.IndentedJSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request body: " + err.Error(),
+			"error": "invalid request body: " + err.Error(),
 		})
 		return
 	}
@@ -125,6 +131,7 @@ func (cstmr *customer) UpdateCustomer(c *gin.Context) {
 
 	updatedUser, err := cstmr.customerModule.UpdateUser(ctx, userID, reqBody)
 	if err != nil {
+		cstmr.logger.Info("failed to update user", zap.Error(err))
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to update user: " + err.Error(),
 		})
@@ -146,6 +153,7 @@ func (cstmr *customer) DeleteCustomer(c *gin.Context) {
 
 	err := cstmr.customerModule.DeleteUser(ctx, userID)
 	if err != nil {
+		cstmr.logger.Info("failed to delete user", zap.Error(err))
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to delete user: " + err.Error(),
 		})
