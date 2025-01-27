@@ -8,6 +8,7 @@ type Customer interface {
 	Register(ctx *gin.Context)
 	Login(ctx *gin.Context)
 	GetCustomers(ctx *gin.Context)
+	UpdateCustomer(c *gin.Context)
 }
 type Order interface {
 	CreateOrder(ctx *gin.Context)

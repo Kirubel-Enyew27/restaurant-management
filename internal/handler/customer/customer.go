@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"restaurant/internal/constant/model/db"
+	"restaurant/internal/constant/model/dto"
 	"restaurant/internal/handler"
 	"restaurant/internal/service"
 	"time"
@@ -105,4 +106,34 @@ func (cstmr *customer) GetCustomers(c *gin.Context) {
 		"message": "users fetched successffuly",
 		"users":   users,
 	})
+}
+
+func (cstmr *customer) UpdateCustomer(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), cstmr.contextTimeout)
+	defer cancel()
+
+	var reqBody dto.UpdateRequest
+
+	if err := c.ShouldBindJSON(&reqBody); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request body",
+		})
+		return
+	}
+
+	userID := c.Param("id")
+
+	updatedUser, err := cstmr.customerModule.UpdateUser(ctx, userID, reqBody)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to update user",
+		})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"message":      "user updated successfully",
+		"updated_user": updatedUser,
+	})
+
 }
