@@ -11,6 +11,7 @@ type Customer interface {
 	Login(ctx context.Context, user db.User) (string, error)
 	GetCustomers(ctx context.Context) ([]db.User, error)
 	UpdateUser(ctx context.Context, param string, req dto.UpdateRequest) (db.User, error)
+	DeleteUser(ctx context.Context, userID string) error
 }
 type Order interface{}
 type Food interface{}
