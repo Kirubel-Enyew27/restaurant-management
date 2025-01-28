@@ -9,7 +9,7 @@ import (
 type Customer interface {
 	Register(ctx context.Context, user db.User) (db.User, error)
 	Login(ctx context.Context, user db.User) (string, error)
-	GetCustomers(ctx context.Context) ([]db.User, error)
+	GetUsers(ctx context.Context) ([]db.User, error)
 	UpdateUser(ctx context.Context, param string, req dto.UpdateRequest) (db.User, error)
 	DeleteUser(ctx context.Context, userID string) error
 }

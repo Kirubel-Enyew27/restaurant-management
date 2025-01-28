@@ -88,7 +88,7 @@ func (c *Customer) Login(ctx context.Context, user db.User) (string, error) {
 	return token, nil
 }
 
-func (c *Customer) GetCustomers(ctx context.Context) ([]db.User, error) {
+func (c *Customer) GetUsers(ctx context.Context) ([]db.User, error) {
 	return c.storage.GetCustomers(ctx)
 }
 

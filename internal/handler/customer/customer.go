@@ -94,7 +94,7 @@ func (cstmr *customer) GetCustomers(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), cstmr.contextTimeout)
 	defer cancel()
 
-	users, err := cstmr.customerModule.GetCustomers(ctx)
+	users, err := cstmr.customerModule.GetUsers(ctx)
 	if err != nil {
 		cstmr.logger.Info("failed to fetch customers", zap.Error(err))
 		c.IndentedJSON(http.StatusNotFound, gin.H{
