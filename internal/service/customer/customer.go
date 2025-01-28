@@ -98,15 +98,18 @@ func (c *Customer) UpdateUser(ctx context.Context, userID string, req dto.Update
 		return db.User{}, fmt.Errorf("invalid user ID: %w", err)
 	}
 
-	hashedPassword, err := utils.HashPassword(req.Password)
-	if err != nil {
-		return db.User{}, fmt.Errorf("failed to hash password: %w", err)
+	if req.Password != "" {
+		hashedPassword, err := utils.HashPassword(req.Password)
+		if err != nil {
+			return db.User{}, fmt.Errorf("failed to hash password: %w", err)
+		}
+		req.Password = hashedPassword
 	}
 
 	user := db.User{
 		UserID:   userUUID,
 		Username: req.Username,
-		Password: hashedPassword,
+		Password: req.Password,
 		Email:    req.Email,
 	}
 
