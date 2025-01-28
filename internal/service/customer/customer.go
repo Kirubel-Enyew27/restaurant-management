@@ -57,7 +57,7 @@ func (c *Customer) Register(ctx context.Context, user db.User) (db.User, error) 
 
 	hashedPassword, err := utils.HashPassword(user.Password)
 	if err != nil {
-		return db.User{}, err
+		return db.User{}, fmt.Errorf("failed to hash password: %w", err)
 	}
 	user.Password = hashedPassword
 
@@ -98,10 +98,15 @@ func (c *Customer) UpdateUser(ctx context.Context, userID string, req dto.Update
 		return db.User{}, fmt.Errorf("invalid user ID: %w", err)
 	}
 
+	hashedPassword, err := utils.HashPassword(req.Password)
+	if err != nil {
+		return db.User{}, fmt.Errorf("failed to hash password: %w", err)
+	}
+
 	user := db.User{
 		UserID:   userUUID,
 		Username: req.Username,
-		Password: req.Password,
+		Password: hashedPassword,
 		Email:    req.Email,
 	}
 
