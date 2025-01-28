@@ -49,7 +49,6 @@ func (cstmr *customer) Register(c *gin.Context) {
 		Password: req.Password,
 	})
 	if err != nil {
-		cstmr.logger.Info("registration failed", zap.Error(err))
 		_ = c.Error(err)
 		return
 	}
@@ -76,16 +75,12 @@ func (cstmr *customer) Login(c *gin.Context) {
 	})
 
 	if err != nil {
-		err := errors.ErrUnableToLogin.Wrap(err, "failed to login")
-		cstmr.logger.Info("failed to login", zap.Error(err))
 		_ = c.Error(err)
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, gin.H{
-		"message": "logged in successffuly",
-		"token":   token,
-	})
+	response.SendSuccessResponse(c, http.StatusOK, token, nil)
+
 }
 
 func (cstmr *customer) GetCustomers(c *gin.Context) {
@@ -94,17 +89,12 @@ func (cstmr *customer) GetCustomers(c *gin.Context) {
 
 	users, err := cstmr.customerModule.GetUsers(ctx)
 	if err != nil {
-		cstmr.logger.Info("failed to fetch customers", zap.Error(err))
-		c.IndentedJSON(http.StatusNotFound, gin.H{
-			"error": "failed to fetch customers: " + err.Error(),
-		})
+		_ = c.Error(err)
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, gin.H{
-		"message": "users fetched successffuly",
-		"users":   users,
-	})
+	response.SendSuccessResponse(c, http.StatusOK, users, nil)
+
 }
 
 func (cstmr *customer) UpdateCustomer(c *gin.Context) {
@@ -114,10 +104,9 @@ func (cstmr *customer) UpdateCustomer(c *gin.Context) {
 	var reqBody dto.UpdateRequest
 
 	if err := c.ShouldBindJSON(&reqBody); err != nil {
+		err := errors.ErrBadRequest.Wrap(err, "failed to bind request body")
 		cstmr.logger.Info("invalid request body", zap.Error(err))
-		c.IndentedJSON(http.StatusBadRequest, gin.H{
-			"error": "invalid request body: " + err.Error(),
-		})
+		_ = c.Error(err)
 		return
 	}
 
@@ -125,17 +114,11 @@ func (cstmr *customer) UpdateCustomer(c *gin.Context) {
 
 	updatedUser, err := cstmr.customerModule.UpdateUser(ctx, userID, reqBody)
 	if err != nil {
-		cstmr.logger.Info("failed to update user", zap.Error(err))
-		c.IndentedJSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to update user: " + err.Error(),
-		})
+		_ = c.Error(err)
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, gin.H{
-		"message":      "user updated successfully",
-		"updated_user": updatedUser,
-	})
+	response.SendSuccessResponse(c, http.StatusOK, updatedUser, nil)
 
 }
 
@@ -147,15 +130,10 @@ func (cstmr *customer) DeleteCustomer(c *gin.Context) {
 
 	err := cstmr.customerModule.DeleteUser(ctx, userID)
 	if err != nil {
-		cstmr.logger.Info("failed to delete user", zap.Error(err))
-		c.IndentedJSON(http.StatusInternalServerError, gin.H{
-			"error": "failed to delete user: " + err.Error(),
-		})
+		_ = c.Error(err)
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, gin.H{
-		"message": "user deleted successfully",
-	})
+	response.SendSuccessResponse(c, http.StatusOK, err, nil)
 
 }
