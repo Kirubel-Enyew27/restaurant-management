@@ -3,7 +3,7 @@ package customer
 import (
 	"context"
 	"database/sql"
-	"fmt"
+	"restaurant/internal/constant/errors"
 	"restaurant/internal/constant/model/db"
 	"restaurant/internal/constant/model/persistencedb"
 	"restaurant/internal/storage"
@@ -34,7 +34,8 @@ func (c *customer) Register(ctx context.Context, user db.User) (db.User, error) 
 
 	newUser, err := c.db.Queries.CreateUser(ctx, arg)
 	if err != nil {
-		return db.User{}, fmt.Errorf("failed to create user: %w", err)
+		c.log.Info("failed to create user", zap.Error(err))
+		return db.User{}, errors.ErrUnableTocreate.Wrap(err, "failed to create user")
 	}
 
 	registeredUser := db.User{
@@ -50,8 +51,13 @@ func (c *customer) Register(ctx context.Context, user db.User) (db.User, error) 
 
 func (c *customer) GetUserByUsername(ctx context.Context, username string) (db.User, error) {
 	user, err := c.db.Queries.GetUserByUsername(ctx, username)
-	if err != nil && err != pgx.ErrNoRows {
-		return db.User{}, fmt.Errorf("failed to fetch user by username: %w", err)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			c.log.Error("failed to get user by username", zap.Error(err))
+			return db.User{}, errors.ErrNoRecordFound.Wrap(err, "user not found")
+		}
+		c.log.Error("failed to get user by username", zap.Error(err))
+		return db.User{}, errors.ErrUnableToGet.Wrap(err, "failed to get user")
 	}
 
 	existingUser := db.User{
@@ -67,8 +73,13 @@ func (c *customer) GetUserByUsername(ctx context.Context, username string) (db.U
 
 func (c *customer) GetUserByEmail(ctx context.Context, email string) (db.User, error) {
 	user, err := c.db.Queries.GetUserByEmail(ctx, email)
-	if err != nil && err != pgx.ErrNoRows {
-		return db.User{}, fmt.Errorf("failed to fetch user by email: %w", err)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			c.log.Error("failed to get user by email", zap.Error(err))
+			return db.User{}, errors.ErrNoRecordFound.Wrap(err, "user not found")
+		}
+		c.log.Error("failed to get user by email", zap.Error(err))
+		return db.User{}, errors.ErrUnableToGet.Wrap(err, "failed to get user")
 	}
 	existingUser := db.User{
 		UserID:    user.UserID,
@@ -85,9 +96,11 @@ func (c *customer) GetCustomers(ctx context.Context) ([]db.User, error) {
 	users, err := c.db.Queries.ListUsers(ctx)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return nil, fmt.Errorf("no users found: %w", err)
+			c.log.Error("failed to get users", zap.Error(err))
+			return nil, errors.ErrUnableToGet.Wrap(err, "users not found")
 		}
-		return nil, fmt.Errorf("failed to fetch users: %w", err)
+		c.log.Error("failed to get users", zap.Error(err))
+		return nil, errors.ErrUnableToGet.Wrap(err, "failed to get users")
 	}
 
 	fetchedUsers := make([]db.User, len(users))
@@ -108,9 +121,11 @@ func (c *customer) GetCustomerByID(ctx context.Context, userID uuid.UUID) (db.Us
 	user, err := c.db.Queries.GetUserByID(ctx, userID)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return db.User{}, fmt.Errorf("user not found: %w", err)
+			c.log.Error("failed to get user by id", zap.Error(err))
+			return db.User{}, errors.ErrNoRecordFound.Wrap(err, "user not found")
 		}
-		return db.User{}, fmt.Errorf("failed to fetch user: %w", err)
+		c.log.Error("failed to get user by id", zap.Error(err))
+		return db.User{}, errors.ErrUnableToGet.Wrap(err, "failed to get user")
 	}
 
 	return user, nil
@@ -138,7 +153,12 @@ func (c *customer) UpdateCustomer(ctx context.Context, user db.User) (db.User, e
 
 	updatedUser, err := c.db.Queries.UpdateUser(ctx, updateParams)
 	if err != nil {
-		return db.User{}, fmt.Errorf("error updating user: %w", err)
+		if err == pgx.ErrNoRows {
+			c.log.Error("user to be updated does not exist", zap.Error(err))
+			return db.User{}, errors.ErrNoRecordFound.Wrap(err, "user not found")
+		}
+		c.log.Error("failed to update user", zap.Error(err))
+		return db.User{}, errors.ErrUnableToUpdate.Wrap(err, "failed to update user")
 	}
 
 	return updatedUser, nil
@@ -147,7 +167,8 @@ func (c *customer) UpdateCustomer(ctx context.Context, user db.User) (db.User, e
 func (c *customer) DeleteCustomer(ctx context.Context, userID uuid.UUID) error {
 	err := c.db.Queries.DeleteUser(ctx, userID)
 	if err != nil {
-		return fmt.Errorf("error deleting user: %w", err)
+		c.log.Error("error deleting user", zap.Error(err))
+		return errors.ErrDBDelError.Wrap(err, "failed to delete user")
 	}
 
 	return nil

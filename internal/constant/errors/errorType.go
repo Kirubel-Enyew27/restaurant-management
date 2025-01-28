@@ -196,6 +196,10 @@ var Error = []ErrorType{
 		StatusCode: http.StatusInternalServerError,
 		ErrorType:  ErrFailedToPerformCashOut,
 	},
+	{
+		StatusCode: http.StatusInternalServerError,
+		ErrorType:  ErrFailedToHash,
+	},
 }
 
 // list of error namespaces
@@ -303,4 +307,5 @@ var (
 					ApplyModifiers(errorx.TypeModifierOmitStackTrace)
 	ErrCreateCheckoutSession  = errorx.NewType(paymentgatewayError, "failed to create checkout session")
 	ErrFailedToPerformCashOut = errorx.NewType(paymentgatewayError, "unable to perform cashout")
+	ErrFailedToHash           = errorx.NewType(serverError, "failed to hash")
 )
