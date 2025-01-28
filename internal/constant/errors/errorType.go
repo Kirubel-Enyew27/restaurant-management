@@ -248,6 +248,7 @@ var (
 	ErrTripDeviceChange        = errorx.NewType(invalidInput, "user changed device")
 	ErrResourceNotFound        = errorx.NewType(resourceNotFound, "resource not found")
 	ErrAcessError              = errorx.NewType(unauthorized, "Unauthorized", AccessDenied)
+	ErrUnableToLogin           = errorx.NewType(unauthorized, "unable to login")
 	ErrIneligibleError         = errorx.NewType(ineligible, "Ineligible", Ineligible)
 	ErrInternalServerError     = errorx.NewType(serverError, "internal server error")
 	ErrAuthClient              = errorx.NewType(authoriztionClientError, "authorization client error")

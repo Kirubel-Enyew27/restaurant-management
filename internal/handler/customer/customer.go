@@ -64,10 +64,9 @@ func (cstmr *customer) Login(c *gin.Context) {
 	var req db.User
 
 	if err := c.ShouldBindJSON(&req); err != nil {
+		err := errors.ErrBadRequest.Wrap(err, "failed to bind request body")
 		cstmr.logger.Info("invalid request body", zap.Error(err))
-		c.IndentedJSON(http.StatusBadRequest, gin.H{
-			"error": "invalid request: " + err.Error(),
-		})
+		_ = c.Error(err)
 		return
 	}
 
@@ -77,10 +76,9 @@ func (cstmr *customer) Login(c *gin.Context) {
 	})
 
 	if err != nil {
-		cstmr.logger.Info("unable to login", zap.Error(err))
-		c.IndentedJSON(http.StatusBadRequest, gin.H{
-			"error": "unable to login: " + err.Error(),
-		})
+		err := errors.ErrUnableToLogin.Wrap(err, "failed to login")
+		cstmr.logger.Info("failed to login", zap.Error(err))
+		_ = c.Error(err)
 		return
 	}
 
