@@ -3,8 +3,10 @@ package customer
 import (
 	"context"
 	"net/http"
+	"restaurant/internal/constant/errors"
 	"restaurant/internal/constant/model/db"
 	"restaurant/internal/constant/model/dto"
+	"restaurant/internal/constant/model/response"
 	"restaurant/internal/handler"
 	"restaurant/internal/service"
 	"time"
@@ -35,10 +37,9 @@ func (cstmr *customer) Register(c *gin.Context) {
 	var req db.User
 
 	if err := c.ShouldBindJSON(&req); err != nil {
+		err := errors.ErrBadRequest.Wrap(err, "failed to bind request body")
 		cstmr.logger.Info("invalid request body", zap.Error(err))
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid request body: " + err.Error(),
-		})
+		_ = c.Error(err)
 		return
 	}
 
@@ -49,16 +50,11 @@ func (cstmr *customer) Register(c *gin.Context) {
 	})
 	if err != nil {
 		cstmr.logger.Info("registration failed", zap.Error(err))
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "registration failed: " + err.Error(),
-		})
+		_ = c.Error(err)
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"message":         "user registered successfully",
-		"registered_user": newUser,
-	})
+	response.SendSuccessResponse(c, http.StatusCreated, newUser, nil)
 }
 
 func (cstmr *customer) Login(c *gin.Context) {
