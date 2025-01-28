@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"restaurant/internal/constant/model/persistencedb"
+	"restaurant/internal/handler/middleware"
 	"syscall"
 	"time"
 
@@ -69,6 +70,7 @@ func Intiate() {
 	sampleLogger.Info("initializing server")
 	server := gin.New()
 	gin.SetMode(gin.DebugMode)
+	server.Use(middleware.ErrorHandler())
 	sampleLogger.Info("server initialized")
 
 	sampleLogger.Info("initializing router")
