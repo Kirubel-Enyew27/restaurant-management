@@ -43,11 +43,7 @@ func (cstmr *customer) Register(c *gin.Context) {
 		return
 	}
 
-	newUser, err := cstmr.customerModule.Register(ctx, db.User{
-		Username: req.Username,
-		Email:    req.Email,
-		Password: req.Password,
-	})
+	newUser, err := cstmr.customerModule.Register(ctx, req)
 	if err != nil {
 		_ = c.Error(err)
 		return
