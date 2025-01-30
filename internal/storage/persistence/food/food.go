@@ -49,6 +49,34 @@ func (fd *food) AddFood(ctx context.Context, meal db.Meal) (db.Meal, error) {
 	return registeredMeal, nil
 }
 
+func (fd *food) GetFoods(ctx context.Context) ([]db.Meal, error) {
+	meals, err := fd.db.Queries.GetAllMeals(ctx)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			fd.log.Error("failed to get meals", zap.Error(err))
+			return nil, errors.ErrUnableToGet.Wrap(err, "meals not found")
+		}
+		fd.log.Error("failed to get meals", zap.Error(err))
+		return nil, errors.ErrUnableToGet.Wrap(err, "failed to get meals")
+	}
+
+	fetchedMeals := make([]db.Meal, len(meals))
+
+	for i, meal := range meals {
+		fetchedMeals[i] = db.Meal{
+			MealID:     meal.MealID,
+			Name:       meal.Name,
+			Price:      meal.Price,
+			Available:  meal.Available,
+			CreatedAt:  meal.CreatedAt,
+			Quantity:   meal.Quantity,
+			ModifiedAt: meal.ModifiedAt,
+		}
+	}
+
+	return fetchedMeals, nil
+}
+
 func (fd *food) GetFoodByName(ctx context.Context, name string) (db.Meal, error) {
 	food, err := fd.db.Queries.GetMealByName(ctx, name)
 	if err != nil {
