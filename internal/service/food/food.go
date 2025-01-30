@@ -55,3 +55,7 @@ func (fd *Food) AddFood(ctx context.Context, meal db.Meal) (db.Meal, error) {
 	return fd.storage.AddFood(ctx, meal)
 
 }
+
+func (fd *Food) GetFoods(ctx context.Context) ([]db.Meal, error) {
+	return fd.storage.GetFoods(ctx)
+}

@@ -16,5 +16,6 @@ type Customer interface {
 type Order interface{}
 type Food interface {
 	AddFood(ctx context.Context, meal db.Meal) (db.Meal, error)
+	GetFoods(ctx context.Context) ([]db.Meal, error)
 }
 type Price interface{}
