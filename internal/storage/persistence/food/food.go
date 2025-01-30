@@ -2,12 +2,14 @@ package food
 
 import (
 	"context"
+	"database/sql"
 	"restaurant/internal/constant/errors"
 	"restaurant/internal/constant/model/db"
 	"restaurant/internal/constant/model/persistencedb"
 	"restaurant/internal/storage"
 
 	"github.com/jackc/pgx/v4"
+	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 )
 
@@ -95,4 +97,32 @@ func (fd *food) GetFoodByName(ctx context.Context, name string) (db.Meal, error)
 	}
 
 	return existingFood, nil
+}
+
+func (c *food) UpdateFood(ctx context.Context, meal db.Meal) (db.Meal, error) {
+	updateParams := db.UpdateMealParams{
+		MealID: meal.MealID,
+		Name:   sql.NullString{},
+		Price:  decimal.NullDecimal{},
+	}
+
+	// Set values if non-empty
+	if meal.Name != "" {
+		updateParams.Name = sql.NullString{String: meal.Name, Valid: true}
+	}
+	if meal.Price != decimal.NewFromInt32(0) {
+		updateParams.Price = decimal.NullDecimal{Decimal: meal.Price, Valid: true}
+	}
+
+	updatedMeal, err := c.db.Queries.UpdateMeal(ctx, updateParams)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			c.log.Error("meal to be updated does not exist", zap.Error(err))
+			return db.Meal{}, errors.ErrNoRecordFound.Wrap(err, "meal not found")
+		}
+		c.log.Error("failed to update meal", zap.Error(err))
+		return db.Meal{}, errors.ErrUnableToUpdate.Wrap(err, "failed to update meal")
+	}
+
+	return updatedMeal, nil
 }
