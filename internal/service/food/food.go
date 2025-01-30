@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 	"go.uber.org/zap"
 )
@@ -57,4 +58,20 @@ func (fd *Food) AddFood(ctx context.Context, meal db.Meal) (db.Meal, error) {
 
 func (fd *Food) GetFoods(ctx context.Context) ([]db.Meal, error) {
 	return fd.storage.GetFoods(ctx)
+}
+
+func (fd *Food) UpdateFood(ctx context.Context, mealID string, req db.Meal) (db.Meal, error) {
+	mealUUID, err := uuid.Parse(mealID)
+	if err != nil {
+		fd.log.Error("failed to parse meal id", zap.Error(err))
+		return db.Meal{}, errors.ErrInvalidUserInput.Wrap(err, "invalid meal id")
+	}
+
+	meal := db.Meal{
+		MealID: mealUUID,
+		Name:   req.Name,
+		Price:  req.Price,
+	}
+
+	return fd.storage.UpdateFood(ctx, meal)
 }
