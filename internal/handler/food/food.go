@@ -92,3 +92,19 @@ func (fd *food) UpdateFood(c *gin.Context) {
 	response.SendSuccessResponse(c, http.StatusOK, updatedUser, nil)
 
 }
+
+func (fd *food) DeleteFood(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), fd.contextTimeout)
+	defer cancel()
+
+	mealID := c.Param("id")
+
+	err := fd.foodModule.DeleteFood(ctx, mealID)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	response.SendSuccessResponse(c, http.StatusOK, err, nil)
+
+}
