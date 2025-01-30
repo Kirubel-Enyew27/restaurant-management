@@ -53,6 +53,7 @@ func (fd *food) AddFood(c *gin.Context) {
 
 	response.SendSuccessResponse(c, http.StatusCreated, registeredFood, nil)
 }
+
 func (fd *food) GetFoods(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), fd.contextTimeout)
 	defer cancel()
@@ -64,5 +65,30 @@ func (fd *food) GetFoods(c *gin.Context) {
 	}
 
 	response.SendSuccessResponse(c, http.StatusOK, meals, nil)
+
+}
+
+func (fd *food) UpdateFood(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), fd.contextTimeout)
+	defer cancel()
+
+	var reqBody db.Meal
+
+	if err := c.ShouldBindJSON(&reqBody); err != nil {
+		err := errors.ErrBadRequest.Wrap(err, "failed to bind request body")
+		fd.logger.Info("invalid request body", zap.Error(err))
+		_ = c.Error(err)
+		return
+	}
+
+	mealID := c.Param("id")
+
+	updatedUser, err := fd.foodModule.UpdateFood(ctx, mealID, reqBody)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	response.SendSuccessResponse(c, http.StatusOK, updatedUser, nil)
 
 }

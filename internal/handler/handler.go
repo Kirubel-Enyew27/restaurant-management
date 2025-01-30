@@ -18,4 +18,5 @@ type Order interface {
 type Food interface {
 	AddFood(ctx *gin.Context)
 	GetFoods(ctx *gin.Context)
+	UpdateFood(c *gin.Context)
 }
