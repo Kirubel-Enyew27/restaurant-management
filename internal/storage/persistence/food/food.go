@@ -8,6 +8,7 @@ import (
 	"restaurant/internal/constant/model/persistencedb"
 	"restaurant/internal/storage"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
@@ -34,7 +35,7 @@ func (fd *food) AddFood(ctx context.Context, meal db.Meal) (db.Meal, error) {
 	newMeal, err := fd.db.Queries.CreateMeal(ctx, arg)
 	if err != nil {
 		fd.log.Info("failed to create meal", zap.Error(err))
-		return db.Meal{}, errors.ErrUnableTocreate.Wrap(err, "failed to create user")
+		return db.Meal{}, errors.ErrUnableTocreate.Wrap(err, "failed to create meal")
 	}
 
 	registeredMeal := db.Meal{
@@ -74,6 +75,21 @@ func (fd *food) GetFoods(ctx context.Context) ([]db.Meal, error) {
 	}
 
 	return fetchedMeals, nil
+}
+
+func (fd *food) GetFoodByID(ctx context.Context, mealID uuid.UUID) (db.Meal, error) {
+	meal, err := fd.db.Queries.GetMealByID(ctx, mealID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			fd.log.Error("failed to get meal by id", zap.Error(err))
+			return db.Meal{}, errors.ErrNoRecordFound.Wrap(err, "meal not found")
+		}
+		fd.log.Error("failed to get meal by id", zap.Error(err))
+		return db.Meal{}, errors.ErrUnableToGet.Wrap(err, "failed to get meal")
+	}
+
+	return meal, nil
+
 }
 
 func (fd *food) GetFoodByName(ctx context.Context, name string) (db.Meal, error) {
@@ -125,4 +141,14 @@ func (fd *food) UpdateFood(ctx context.Context, meal db.Meal) (db.Meal, error) {
 	}
 
 	return updatedMeal, nil
+}
+
+func (fd *food) DeleteFood(ctx context.Context, mealID uuid.UUID) error {
+	err := fd.db.Queries.DeleteMeal(ctx, mealID)
+	if err != nil {
+		fd.log.Error("error deleting meal", zap.Error(err))
+		return errors.ErrDBDelError.Wrap(err, "failed to delete meal")
+	}
+
+	return nil
 }

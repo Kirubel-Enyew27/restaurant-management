@@ -10,8 +10,10 @@ import (
 type Food interface {
 	AddFood(ctx context.Context, meal db.Meal) (db.Meal, error)
 	GetFoods(ctx context.Context) ([]db.Meal, error)
+	GetFoodByID(ctx context.Context, mealID uuid.UUID) (db.Meal, error)
 	GetFoodByName(ctx context.Context, name string) (db.Meal, error)
 	UpdateFood(ctx context.Context, meal db.Meal) (db.Meal, error)
+	DeleteFood(ctx context.Context, mealID uuid.UUID) error
 }
 
 type Order interface{}
