@@ -19,7 +19,7 @@ type Handler struct {
 func InitHandler(module Module, log *zap.Logger, timeout time.Duration) Handler {
 
 	return Handler{
-		food:     food.Init(log, module.Food, module.Food, timeout),
+		food:     food.Init(log, module.Order, module.Food, timeout),
 		order:    order.Init(log, module.Order, module.Customer, timeout),
 		customer: customer.Init(log, module.Customer, timeout),
 	}
