@@ -75,3 +75,18 @@ func (fd *Food) UpdateFood(ctx context.Context, mealID string, req db.Meal) (db.
 
 	return fd.storage.UpdateFood(ctx, meal)
 }
+
+func (fd *Food) DeleteFood(ctx context.Context, mealID string) error {
+	mealUUID, err := uuid.Parse(mealID)
+	if err != nil {
+		fd.log.Error("failed to parse meal id", zap.Error(err))
+		return errors.ErrInvalidUserInput.Wrap(err, "invalid meal id")
+	}
+
+	meal, err := fd.storage.GetFoodByID(ctx, mealUUID)
+	if err != nil {
+		return err
+	}
+
+	return fd.storage.DeleteFood(ctx, meal.MealID)
+}
