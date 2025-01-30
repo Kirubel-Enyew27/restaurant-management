@@ -1,6 +1,11 @@
 package food
 
 import (
+	"context"
+	"net/http"
+	"restaurant/internal/constant/errors"
+	"restaurant/internal/constant/model/db"
+	"restaurant/internal/constant/model/response"
 	"restaurant/internal/handler"
 	"restaurant/internal/service"
 	"time"
@@ -27,5 +32,24 @@ func Init(log *zap.Logger, orderModule service.Order,
 	}
 }
 
-func (fd *food) AddFood(ctx *gin.Context)  {}
-func (fd *food) GetFoods(ctx *gin.Context) {}
+func (fd *food) AddFood(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), fd.contextTimeout)
+	defer cancel()
+
+	var req db.Meal
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		err := errors.ErrBadRequest.Wrap(err, "failed to bind request body")
+		fd.logger.Info("invalid request body", zap.Error(err))
+		_ = c.Error(err)
+		return
+	}
+
+	registeredFood, err := fd.foodModule.AddFood(ctx, req)
+	if err != nil {
+		_ = c.Error(err)
+	}
+
+	response.SendSuccessResponse(c, http.StatusCreated, registeredFood, nil)
+}
+func (fd *food) GetFoods(c *gin.Context) {}
