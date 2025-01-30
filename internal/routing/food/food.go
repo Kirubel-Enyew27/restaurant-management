@@ -25,6 +25,18 @@ func InitRoute(group *gin.RouterGroup, h handler.Food,
 			Handler:     h.GetFoods,
 			Middlewares: []gin.HandlerFunc{},
 		},
+		{
+			Method:      http.MethodPatch,
+			Path:        "/food/update/:id",
+			Handler:     h.AddFood,
+			Middlewares: []gin.HandlerFunc{},
+		},
+		{
+			Method:      http.MethodDelete,
+			Path:        "/food/delete/:id",
+			Handler:     h.GetFoods,
+			Middlewares: []gin.HandlerFunc{},
+		},
 	}
 
 	routing.RegisterRoute(group, foodRoutes, log)
