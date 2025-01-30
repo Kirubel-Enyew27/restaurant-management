@@ -15,7 +15,7 @@ func InitRoute(group *gin.RouterGroup, h handler.Food,
 	foodRoutes := []routing.Router{
 		{
 			Method:      http.MethodPost,
-			Path:        "/food",
+			Path:        "/food/add",
 			Handler:     h.AddFood,
 			Middlewares: []gin.HandlerFunc{},
 		},
