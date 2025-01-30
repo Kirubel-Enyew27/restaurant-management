@@ -1,0 +1,1 @@
+ALTER TABLE meals ADD COLUMN quantity INT NOT NULL DEFAULT 0 CHECK (quantity >= 0);

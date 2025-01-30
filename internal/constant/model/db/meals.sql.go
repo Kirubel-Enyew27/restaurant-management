@@ -14,19 +14,18 @@ import (
 )
 
 const createMeal = `-- name: CreateMeal :one
-INSERT INTO meals (name, price, quantity)
-VALUES ($1, $2, $3)
-RETURNING meal_id, name, price, available, created_at, quantity, modified_at
+INSERT INTO meals (name, price)
+VALUES ($1, $2)
+RETURNING meal_id, name, price, available, created_at, modified_at
 `
 
 type CreateMealParams struct {
-	Name     string
-	Price    decimal.Decimal
-	Quantity int32
+	Name  string
+	Price decimal.Decimal
 }
 
 func (q *Queries) CreateMeal(ctx context.Context, arg CreateMealParams) (Meal, error) {
-	row := q.db.QueryRow(ctx, createMeal, arg.Name, arg.Price, arg.Quantity)
+	row := q.db.QueryRow(ctx, createMeal, arg.Name, arg.Price)
 	var i Meal
 	err := row.Scan(
 		&i.MealID,
@@ -34,7 +33,6 @@ func (q *Queries) CreateMeal(ctx context.Context, arg CreateMealParams) (Meal, e
 		&i.Price,
 		&i.Available,
 		&i.CreatedAt,
-		&i.Quantity,
 		&i.ModifiedAt,
 	)
 	return i, err
@@ -51,7 +49,7 @@ func (q *Queries) DeleteMeal(ctx context.Context, mealID uuid.UUID) error {
 }
 
 const getAllMeals = `-- name: GetAllMeals :many
-SELECT meal_id, name, price, available, created_at, quantity, modified_at
+SELECT meal_id, name, price, available, created_at, modified_at
 FROM meals
 `
 
@@ -70,7 +68,6 @@ func (q *Queries) GetAllMeals(ctx context.Context) ([]Meal, error) {
 			&i.Price,
 			&i.Available,
 			&i.CreatedAt,
-			&i.Quantity,
 			&i.ModifiedAt,
 		); err != nil {
 			return nil, err
@@ -84,7 +81,7 @@ func (q *Queries) GetAllMeals(ctx context.Context) ([]Meal, error) {
 }
 
 const getMealByID = `-- name: GetMealByID :one
-SELECT meal_id, name, price, available, created_at, quantity, modified_at
+SELECT meal_id, name, price, available, created_at, modified_at
 FROM meals
 WHERE meal_id = $1
 `
@@ -98,14 +95,13 @@ func (q *Queries) GetMealByID(ctx context.Context, mealID uuid.UUID) (Meal, erro
 		&i.Price,
 		&i.Available,
 		&i.CreatedAt,
-		&i.Quantity,
 		&i.ModifiedAt,
 	)
 	return i, err
 }
 
 const getMealByName = `-- name: GetMealByName :one
-SELECT meal_id, name, price, available, created_at, quantity, modified_at
+SELECT meal_id, name, price, available, created_at, modified_at
 FROM meals
 WHERE name = $1
 `
@@ -119,7 +115,6 @@ func (q *Queries) GetMealByName(ctx context.Context, name string) (Meal, error) 
 		&i.Price,
 		&i.Available,
 		&i.CreatedAt,
-		&i.Quantity,
 		&i.ModifiedAt,
 	)
 	return i, err
@@ -131,10 +126,9 @@ SET
     name = COALESCE($2, name),
     price = COALESCE($3, price),
     available = COALESCE($4, available),
-    quantity = COALESCE($5, quantity),
     modified_at = now()
 WHERE meal_id = $1
-RETURNING meal_id, name, price, available, created_at, quantity, modified_at
+RETURNING meal_id, name, price, available, created_at, modified_at
 `
 
 type UpdateMealParams struct {
@@ -142,7 +136,6 @@ type UpdateMealParams struct {
 	Name      sql.NullString
 	Price     decimal.NullDecimal
 	Available sql.NullBool
-	Quantity  sql.NullInt32
 }
 
 func (q *Queries) UpdateMeal(ctx context.Context, arg UpdateMealParams) (Meal, error) {
@@ -151,7 +144,6 @@ func (q *Queries) UpdateMeal(ctx context.Context, arg UpdateMealParams) (Meal, e
 		arg.Name,
 		arg.Price,
 		arg.Available,
-		arg.Quantity,
 	)
 	var i Meal
 	err := row.Scan(
@@ -160,7 +152,6 @@ func (q *Queries) UpdateMeal(ctx context.Context, arg UpdateMealParams) (Meal, e
 		&i.Price,
 		&i.Available,
 		&i.CreatedAt,
-		&i.Quantity,
 		&i.ModifiedAt,
 	)
 	return i, err

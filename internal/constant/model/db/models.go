@@ -17,7 +17,6 @@ type Meal struct {
 	Price      decimal.Decimal
 	Available  sql.NullBool
 	CreatedAt  sql.NullTime
-	Quantity   int32
 	ModifiedAt sql.NullTime
 }
 
