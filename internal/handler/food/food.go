@@ -48,6 +48,7 @@ func (fd *food) AddFood(c *gin.Context) {
 	registeredFood, err := fd.foodModule.AddFood(ctx, req)
 	if err != nil {
 		_ = c.Error(err)
+		return
 	}
 
 	response.SendSuccessResponse(c, http.StatusCreated, registeredFood, nil)
