@@ -52,4 +52,16 @@ func (fd *food) AddFood(c *gin.Context) {
 
 	response.SendSuccessResponse(c, http.StatusCreated, registeredFood, nil)
 }
-func (fd *food) GetFoods(c *gin.Context) {}
+func (fd *food) GetFoods(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), fd.contextTimeout)
+	defer cancel()
+
+	meals, err := fd.foodModule.GetFoods(ctx)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	response.SendSuccessResponse(c, http.StatusOK, meals, nil)
+
+}
