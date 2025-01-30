@@ -1,15 +1,21 @@
 package food
 
 import (
+	"context"
+	"restaurant/internal/constant/errors"
+	"restaurant/internal/constant/model/db"
 	"restaurant/internal/service"
 	"restaurant/internal/storage"
+	"strings"
 
+	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/jackc/pgx/v4"
 	"go.uber.org/zap"
 )
 
 type Food struct {
 	log          *zap.Logger
-	storage      storage.Order
+	storage      storage.Food
 	cacheStorage storage.OrderCache
 	priceStorage storage.Price
 }
@@ -26,4 +32,26 @@ func InitModule(
 		cacheStorage: cache,
 		priceStorage: priceStorage,
 	}
+}
+
+func (fd *Food) AddFood(ctx context.Context, meal db.Meal) (db.Meal, error) {
+	if err := validation.ValidateStruct(&meal,
+		validation.Field(&meal.Name, validation.Required),
+		validation.Field(&meal.Quantity, validation.Required),
+		validation.Field(&meal.Price, validation.Required),
+	); err != nil {
+		fd.log.Error("failed to validate input", zap.Error(err))
+		return db.Meal{}, errors.ErrInvalidUserInput.Wrap(err, "validation failed")
+	}
+
+	existingMeal, err := fd.storage.GetFoodByName(ctx, meal.Name)
+	if err != nil && !strings.Contains(err.Error(), pgx.ErrNoRows.Error()) {
+		return db.Meal{}, err
+	} else if existingMeal.Name != "" {
+		fd.log.Error("food already exists", zap.Error(err))
+		return db.Meal{}, errors.ErrDataAlredyExist.Wrap(err, "food already exists")
+	}
+
+	return fd.storage.AddFood(ctx, meal)
+
 }

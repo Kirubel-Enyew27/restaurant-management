@@ -14,5 +14,7 @@ type Customer interface {
 	DeleteUser(ctx context.Context, userID string) error
 }
 type Order interface{}
-type Food interface{}
+type Food interface {
+	AddFood(ctx context.Context, meal db.Meal) (db.Meal, error)
+}
 type Price interface{}
