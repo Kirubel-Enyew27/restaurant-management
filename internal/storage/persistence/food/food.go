@@ -25,9 +25,8 @@ func Init(db persistencedb.PersistenceDB, log *zap.Logger) storage.Food {
 
 func (fd *food) AddFood(ctx context.Context, meal db.Meal) (db.Meal, error) {
 	arg := db.CreateMealParams{
-		Name:     meal.Name,
-		Quantity: meal.Quantity,
-		Price:    meal.Price,
+		Name:  meal.Name,
+		Price: meal.Price,
 	}
 
 	newMeal, err := fd.db.Queries.CreateMeal(ctx, arg)
@@ -42,7 +41,6 @@ func (fd *food) AddFood(ctx context.Context, meal db.Meal) (db.Meal, error) {
 		Price:      newMeal.Price,
 		Available:  newMeal.Available,
 		CreatedAt:  newMeal.CreatedAt,
-		Quantity:   newMeal.Quantity,
 		ModifiedAt: newMeal.ModifiedAt,
 	}
 
@@ -69,7 +67,6 @@ func (fd *food) GetFoods(ctx context.Context) ([]db.Meal, error) {
 			Price:      meal.Price,
 			Available:  meal.Available,
 			CreatedAt:  meal.CreatedAt,
-			Quantity:   meal.Quantity,
 			ModifiedAt: meal.ModifiedAt,
 		}
 	}
@@ -94,7 +91,6 @@ func (fd *food) GetFoodByName(ctx context.Context, name string) (db.Meal, error)
 		Price:      food.Price,
 		Available:  food.Available,
 		CreatedAt:  food.CreatedAt,
-		Quantity:   food.Quantity,
 		ModifiedAt: food.ModifiedAt,
 	}
 

@@ -37,7 +37,6 @@ func InitModule(
 func (fd *Food) AddFood(ctx context.Context, meal db.Meal) (db.Meal, error) {
 	if err := validation.ValidateStruct(&meal,
 		validation.Field(&meal.Name, validation.Required),
-		validation.Field(&meal.Quantity, validation.Required),
 		validation.Field(&meal.Price, validation.Required),
 	); err != nil {
 		fd.log.Error("failed to validate input", zap.Error(err))
