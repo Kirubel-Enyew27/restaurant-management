@@ -2,11 +2,16 @@ package storage
 
 import (
 	"context"
-	"github.com/google/uuid"
 	"restaurant/internal/constant/model/db"
+
+	"github.com/google/uuid"
 )
 
-type Food interface{}
+type Food interface {
+	AddFood(ctx context.Context, meal db.Meal) (db.Meal, error)
+	GetFoodByName(ctx context.Context, name string) (db.Meal, error)
+}
+
 type Order interface{}
 type Customer interface {
 	Register(ctx context.Context, user db.User) (db.User, error)
