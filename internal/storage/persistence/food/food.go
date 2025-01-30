@@ -99,7 +99,7 @@ func (fd *food) GetFoodByName(ctx context.Context, name string) (db.Meal, error)
 	return existingFood, nil
 }
 
-func (c *food) UpdateFood(ctx context.Context, meal db.Meal) (db.Meal, error) {
+func (fd *food) UpdateFood(ctx context.Context, meal db.Meal) (db.Meal, error) {
 	updateParams := db.UpdateMealParams{
 		MealID: meal.MealID,
 		Name:   sql.NullString{},
@@ -114,13 +114,13 @@ func (c *food) UpdateFood(ctx context.Context, meal db.Meal) (db.Meal, error) {
 		updateParams.Price = decimal.NullDecimal{Decimal: meal.Price, Valid: true}
 	}
 
-	updatedMeal, err := c.db.Queries.UpdateMeal(ctx, updateParams)
+	updatedMeal, err := fd.db.Queries.UpdateMeal(ctx, updateParams)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			c.log.Error("meal to be updated does not exist", zap.Error(err))
+			fd.log.Error("meal to be updated does not exist", zap.Error(err))
 			return db.Meal{}, errors.ErrNoRecordFound.Wrap(err, "meal not found")
 		}
-		c.log.Error("failed to update meal", zap.Error(err))
+		fd.log.Error("failed to update meal", zap.Error(err))
 		return db.Meal{}, errors.ErrUnableToUpdate.Wrap(err, "failed to update meal")
 	}
 

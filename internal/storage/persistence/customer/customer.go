@@ -172,5 +172,4 @@ func (c *customer) DeleteCustomer(ctx context.Context, userID uuid.UUID) error {
 	}
 
 	return nil
-
 }
