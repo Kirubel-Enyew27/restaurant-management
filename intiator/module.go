@@ -23,7 +23,7 @@ func InitModule(persistence Persistence, cache CacheLayer,
 			persistence.customer,
 		),
 		Order: order.InitModule(
-			log, persistence.order, cache.order, persistence.price),
+			log, persistence.order, cache.order, persistence.customer, persistence.food),
 
 		Food: food.InitModule(log, persistence.food, cache.food, persistence.price),
 	}
