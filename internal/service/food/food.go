@@ -69,9 +69,10 @@ func (fd *Food) UpdateFood(ctx context.Context, mealID string, req dto.FoodUpdat
 	}
 
 	meal := db.Meal{
-		MealID: mealUUID,
-		Name:   req.Name,
-		Price:  req.Price,
+		MealID:    mealUUID,
+		Name:      req.Name,
+		Price:     req.Price,
+		Available: req.Available,
 	}
 
 	return fd.storage.UpdateFood(ctx, meal)
