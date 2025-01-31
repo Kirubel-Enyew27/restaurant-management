@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"restaurant/internal/constant/errors"
 	"restaurant/internal/constant/model/db"
+	"restaurant/internal/constant/model/dto"
 	"restaurant/internal/constant/model/response"
 	"restaurant/internal/handler"
 	"restaurant/internal/service"
@@ -72,7 +73,7 @@ func (fd *food) UpdateFood(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), fd.contextTimeout)
 	defer cancel()
 
-	var reqBody db.Meal
+	var reqBody dto.FoodUpdate
 
 	if err := c.ShouldBindJSON(&reqBody); err != nil {
 		err := errors.ErrBadRequest.Wrap(err, "failed to bind request body")

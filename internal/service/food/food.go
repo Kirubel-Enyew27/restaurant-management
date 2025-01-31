@@ -4,6 +4,7 @@ import (
 	"context"
 	"restaurant/internal/constant/errors"
 	"restaurant/internal/constant/model/db"
+	"restaurant/internal/constant/model/dto"
 	"restaurant/internal/service"
 	"restaurant/internal/storage"
 	"strings"
@@ -60,7 +61,7 @@ func (fd *Food) GetFoods(ctx context.Context) ([]db.Meal, error) {
 	return fd.storage.GetFoods(ctx)
 }
 
-func (fd *Food) UpdateFood(ctx context.Context, mealID string, req db.Meal) (db.Meal, error) {
+func (fd *Food) UpdateFood(ctx context.Context, mealID string, req dto.FoodUpdate) (db.Meal, error) {
 	mealUUID, err := uuid.Parse(mealID)
 	if err != nil {
 		fd.log.Error("failed to parse meal id", zap.Error(err))
