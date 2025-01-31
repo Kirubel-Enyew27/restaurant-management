@@ -20,6 +20,23 @@ type Meal struct {
 	ModifiedAt sql.NullTime
 }
 
+type Order struct {
+	OrderID     uuid.UUID
+	UserID      uuid.NullUUID
+	OrderStatus sql.NullString
+	TotalPrice  decimal.Decimal
+	CreatedAt   sql.NullTime
+	ModifiedAt  sql.NullTime
+}
+
+type OrderItem struct {
+	OrderItemID uuid.UUID
+	OrderID     uuid.NullUUID
+	MealID      uuid.NullUUID
+	Quantity    sql.NullInt32
+	Price       decimal.Decimal
+}
+
 type User struct {
 	UserID     uuid.UUID
 	Username   string
