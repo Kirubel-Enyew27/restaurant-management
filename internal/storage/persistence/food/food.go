@@ -117,17 +117,21 @@ func (fd *food) GetFoodByName(ctx context.Context, name string) (db.Meal, error)
 
 func (fd *food) UpdateFood(ctx context.Context, meal db.Meal) (db.Meal, error) {
 	updateParams := db.UpdateMealParams{
-		MealID: meal.MealID,
-		Name:   sql.NullString{},
-		Price:  decimal.NullDecimal{},
+		MealID:    meal.MealID,
+		Name:      sql.NullString{},
+		Price:     decimal.NullDecimal{},
+		Available: sql.NullBool{},
 	}
 
 	// Set values if non-empty
 	if meal.Name != "" {
 		updateParams.Name = sql.NullString{String: meal.Name, Valid: true}
 	}
-	if meal.Price != decimal.NewFromInt32(0) {
+	if meal.Price.IsZero() == false {
 		updateParams.Price = decimal.NullDecimal{Decimal: meal.Price, Valid: true}
+	}
+	if meal.Available.Valid {
+		updateParams.Available = sql.NullBool{Bool: meal.Available.Bool, Valid: true}
 	}
 
 	updatedMeal, err := fd.db.Queries.UpdateMeal(ctx, updateParams)
