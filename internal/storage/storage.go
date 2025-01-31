@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"restaurant/internal/constant/model/db"
+	"restaurant/internal/constant/model/dto"
 
 	"github.com/google/uuid"
 )
@@ -16,7 +17,10 @@ type Food interface {
 	DeleteFood(ctx context.Context, mealID uuid.UUID) error
 }
 
-type Order interface{}
+type Order interface {
+	CreatedOrder(ctx context.Context, order dto.CreateOrderRequest) (db.Order, error)
+	CreateOrderItem(ctx context.Context, orderItem dto.OrderItem) (db.OrderItem, error)
+}
 type Customer interface {
 	Register(ctx context.Context, user db.User) (db.User, error)
 	GetUserByUsername(ctx context.Context, username string) (db.User, error)
