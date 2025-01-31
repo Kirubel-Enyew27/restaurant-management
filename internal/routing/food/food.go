@@ -28,13 +28,13 @@ func InitRoute(group *gin.RouterGroup, h handler.Food,
 		{
 			Method:      http.MethodPatch,
 			Path:        "/food/update/:id",
-			Handler:     h.AddFood,
+			Handler:     h.UpdateFood,
 			Middlewares: []gin.HandlerFunc{},
 		},
 		{
 			Method:      http.MethodDelete,
 			Path:        "/food/delete/:id",
-			Handler:     h.GetFoods,
+			Handler:     h.DeleteFood,
 			Middlewares: []gin.HandlerFunc{},
 		},
 	}
