@@ -9,6 +9,8 @@ import (
 	"restaurant/internal/constant/model/persistencedb"
 	"restaurant/internal/storage"
 
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4"
 	"go.uber.org/zap"
 )
 
@@ -76,4 +78,32 @@ func (o *order) CreateOrderItem(ctx context.Context, orderItem dto.OrderItem) (d
 	}
 
 	return createdOrderItem, nil
+}
+
+func (o *order) GetOrderByID(ctx context.Context, orderID uuid.UUID) (db.Order, error) {
+	order, err := o.db.Queries.GetOrderByID(ctx, orderID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			o.log.Error("failed to get order by id", zap.Error(err))
+			return db.Order{}, errors.ErrNoRecordFound.Wrap(err, "order not found")
+		}
+		o.log.Error("failed to get order by id", zap.Error(err))
+		return db.Order{}, errors.ErrUnableToGet.Wrap(err, "failed to get order")
+	}
+
+	return order, nil
+}
+
+func (o *order) GetOrderItemByID(ctx context.Context, orderItemID uuid.UUID) (db.OrderItem, error) {
+	orderItem, err := o.db.Queries.GetOrderItemByID(ctx, orderItemID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			o.log.Error("failed to get order item by id", zap.Error(err))
+			return db.OrderItem{}, errors.ErrNoRecordFound.Wrap(err, "order item not found")
+		}
+		o.log.Error("failed to get order item by id", zap.Error(err))
+		return db.OrderItem{}, errors.ErrUnableToGet.Wrap(err, "failed to get order item")
+	}
+
+	return orderItem, nil
 }
