@@ -15,7 +15,7 @@ func InitRoute(group *gin.RouterGroup, h handler.Order,
 	orderRoutes := []routing.Router{
 		{
 			Method:      http.MethodPost,
-			Path:        "/order",
+			Path:        "/order/create",
 			Handler:     h.CreateOrder,
 			Middlewares: []gin.HandlerFunc{},
 		},
