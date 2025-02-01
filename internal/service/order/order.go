@@ -2,11 +2,15 @@ package order
 
 import (
 	"context"
+	"restaurant/internal/constant/errors"
 	"restaurant/internal/constant/model/dto"
 	"restaurant/internal/service"
 	"restaurant/internal/storage"
+	"strings"
 
+	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 )
@@ -36,6 +40,46 @@ func InitModule(
 }
 
 func (o *clientOrder) CreatedOrder(ctx context.Context, order dto.CreateOrderRequest) (dto.OrderResponse, error) {
+	if err := validation.ValidateStruct(&order,
+		validation.Field(&order.UserID, validation.Required),
+		validation.Field(&order.Item, validation.Required),
+		validation.Field(&order.TotalPrice, validation.Required),
+	); err != nil {
+		o.log.Error("failed to validate input", zap.Error(err))
+		return dto.OrderResponse{}, errors.ErrInvalidUserInput.Wrap(err, "validation failed")
+	}
+
+	orderUUID, err := uuid.Parse(order.OrderID.UUID.String())
+	if err != nil {
+		o.log.Error("failed to parse order id", zap.Error(err))
+		return dto.OrderResponse{}, errors.ErrInvalidUserInput.Wrap(err, "invalid order id")
+	}
+
+	existingOrder, err := o.storage.GetOrderByID(ctx, orderUUID)
+	if err != nil && !strings.Contains(err.Error(), pgx.ErrNoRows.Error()) {
+		return dto.OrderResponse{}, err
+	} else if existingOrder.OrderStatus.String != "" {
+		o.log.Error("order already created", zap.Error(err))
+		return dto.OrderResponse{}, errors.ErrDataAlredyExist.Wrap(err, "order already created")
+	}
+
+	for _, item := range order.Item {
+		orderItemUUID, err := uuid.Parse(item.OrderItemID.UUID.String())
+		if err != nil {
+			o.log.Error("failed to parse order item id", zap.Error(err))
+			return dto.OrderResponse{}, errors.ErrInvalidUserInput.Wrap(err, "invalid order item id")
+		}
+
+		existingOrderItem, err := o.storage.GetOrderItemByID(ctx, orderItemUUID)
+		if err != nil && !strings.Contains(err.Error(), pgx.ErrNoRows.Error()) {
+			return dto.OrderResponse{}, err
+		} else if existingOrderItem.OrderID.Valid {
+			o.log.Error("order item already created", zap.Error(err))
+			return dto.OrderResponse{}, errors.ErrDataAlredyExist.Wrap(err, "order item already created")
+		}
+
+	}
+
 	user, err := o.userStorage.GetCustomerByID(ctx, order.UserID.UUID)
 	if err != nil {
 		return dto.OrderResponse{}, err
