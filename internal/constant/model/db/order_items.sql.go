@@ -43,3 +43,22 @@ func (q *Queries) CreateOrderItem(ctx context.Context, arg CreateOrderItemParams
 	)
 	return i, err
 }
+
+const getOrderItemByID = `-- name: GetOrderItemByID :one
+SELECT order_item_id, order_id, meal_id, quantity, price
+FROM order_items
+WHERE order_item_id = $1
+`
+
+func (q *Queries) GetOrderItemByID(ctx context.Context, orderItemID uuid.UUID) (OrderItem, error) {
+	row := q.db.QueryRow(ctx, getOrderItemByID, orderItemID)
+	var i OrderItem
+	err := row.Scan(
+		&i.OrderItemID,
+		&i.OrderID,
+		&i.MealID,
+		&i.Quantity,
+		&i.Price,
+	)
+	return i, err
+}
