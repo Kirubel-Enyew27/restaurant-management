@@ -61,8 +61,9 @@ func (o *clientOrder) CreatedOrder(ctx context.Context, order dto.CreateOrderReq
 		return dto.OrderResponse{}, err
 	}
 
+	var orderItems []dto.OrderItem
 	for _, orderItem := range order.Item {
-		_, err := o.storage.CreateOrderItem(ctx, dto.OrderItem{
+		item, err := o.storage.CreateOrderItem(ctx, dto.OrderItem{
 			OrderItemID: orderItem.OrderItemID,
 			OrderID:     uuid.NullUUID{UUID: createdOrder.OrderID, Valid: true},
 			MealID:      orderItem.MealID,
@@ -73,6 +74,14 @@ func (o *clientOrder) CreatedOrder(ctx context.Context, order dto.CreateOrderReq
 		if err != nil {
 			return dto.OrderResponse{}, err
 		}
+
+		orderItems = append(orderItems, dto.OrderItem{
+			OrderItemID: uuid.NullUUID{UUID: item.OrderItemID, Valid: true},
+			OrderID:     item.OrderID,
+			MealID:      item.MealID,
+			Quantity:    item.Quantity,
+			Price:       item.Price,
+		})
 	}
 
 	orderResponse := dto.OrderResponse{
@@ -80,7 +89,7 @@ func (o *clientOrder) CreatedOrder(ctx context.Context, order dto.CreateOrderReq
 		OrderStatus: createdOrder.OrderStatus,
 		TotalPrice:  createdOrder.TotalPrice,
 		User:        user,
-		OrderItem:   order.Item,
+		OrderItem:   orderItems,
 		CreatedAt:   createdOrder.CreatedAt,
 		ModifiedAt:  createdOrder.ModifiedAt,
 	}
