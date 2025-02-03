@@ -5,19 +5,19 @@ import (
 )
 
 type Customer interface {
-	Register(ctx *gin.Context)
-	Login(ctx *gin.Context)
-	GetCustomers(ctx *gin.Context)
+	Register(c *gin.Context)
+	Login(c *gin.Context)
+	GetCustomers(c *gin.Context)
 	UpdateCustomer(c *gin.Context)
 	DeleteCustomer(c *gin.Context)
 }
 type Order interface {
-	CreateOrder(ctx *gin.Context)
-	GetOrders(ctx *gin.Context)
+	CreateOrder(c *gin.Context)
+	GetOrders(c *gin.Context)
 }
 type Food interface {
-	AddFood(ctx *gin.Context)
-	GetFoods(ctx *gin.Context)
+	AddFood(c *gin.Context)
+	GetFoods(c *gin.Context)
 	UpdateFood(c *gin.Context)
 	DeleteFood(c *gin.Context)
 }

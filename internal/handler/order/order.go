@@ -45,7 +45,7 @@ func (o *order) CreateOrder(c *gin.Context) {
 		return
 	}
 
-	order, err := o.orderModule.CreatedOrder(ctx, req)
+	order, err := o.orderModule.CreateOrder(ctx, req)
 	if err != nil {
 		_ = c.Error(err)
 		return
@@ -53,4 +53,15 @@ func (o *order) CreateOrder(c *gin.Context) {
 
 	response.SendSuccessResponse(c, http.StatusCreated, order, nil)
 }
-func (o *order) GetOrders(ctx *gin.Context) {}
+func (o *order) GetOrders(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), o.contextTimeout)
+	defer cancel()
+
+	orders, err := o.orderModule.GetOrders(ctx)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	response.SendSuccessResponse(c, http.StatusOK, orders, nil)
+}
