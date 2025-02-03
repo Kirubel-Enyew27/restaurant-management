@@ -18,10 +18,12 @@ type Food interface {
 }
 
 type Order interface {
-	CreatedOrder(ctx context.Context, order dto.CreateOrderRequest) (db.Order, error)
+	CreateOrder(ctx context.Context, order dto.CreateOrderRequest) (db.Order, error)
+	GetOrders(ctx context.Context) ([]db.ListOrdersRow, error)
 	CreateOrderItem(ctx context.Context, orderItem dto.OrderItem) (db.OrderItem, error)
 	GetOrderByID(ctx context.Context, orderID uuid.UUID) (db.Order, error)
 	GetOrderItemByID(ctx context.Context, orderItemID uuid.UUID) (db.OrderItem, error)
+	GetOrderItemByOrderID(ctx context.Context, orderItemID uuid.NullUUID) ([]db.OrderItem, error)
 }
 type Customer interface {
 	Register(ctx context.Context, user db.User) (db.User, error)

@@ -26,7 +26,7 @@ func Init(db persistencedb.PersistenceDB, log *zap.Logger) storage.Order {
 	}
 }
 
-func (o *order) CreatedOrder(ctx context.Context, order dto.CreateOrderRequest) (db.Order, error) {
+func (o *order) CreateOrder(ctx context.Context, order dto.CreateOrderRequest) (db.Order, error) {
 	createOrderParams := db.CreateOrderParams{
 		UserID:      order.UserID,
 		OrderStatus: sql.NullString{},
@@ -106,4 +106,32 @@ func (o *order) GetOrderItemByID(ctx context.Context, orderItemID uuid.UUID) (db
 	}
 
 	return orderItem, nil
+}
+
+func (o *order) GetOrderItemByOrderID(ctx context.Context, orderItemID uuid.NullUUID) ([]db.OrderItem, error) {
+	orderItem, err := o.db.Queries.GetOrderItemByOrderID(ctx, orderItemID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			o.log.Error("failed to get order item by order id", zap.Error(err))
+			return nil, errors.ErrNoRecordFound.Wrap(err, "order item not found")
+		}
+		o.log.Error("failed to get order item by order id", zap.Error(err))
+		return nil, errors.ErrUnableToGet.Wrap(err, "failed to get order item")
+	}
+
+	return orderItem, nil
+}
+
+func (o *order) GetOrders(ctx context.Context) ([]db.ListOrdersRow, error) {
+	orders, err := o.db.Queries.ListOrders(ctx)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			o.log.Error("failed to get orders", zap.Error(err))
+			return nil, errors.ErrUnableToGet.Wrap(err, "orders not found")
+		}
+		o.log.Error("failed to get orders", zap.Error(err))
+		return nil, errors.ErrUnableToGet.Wrap(err, "failed to get orders")
+	}
+
+	return orders, nil
 }
