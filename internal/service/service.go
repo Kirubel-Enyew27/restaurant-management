@@ -14,7 +14,8 @@ type Customer interface {
 	DeleteUser(ctx context.Context, userID string) error
 }
 type Order interface {
-	CreatedOrder(ctx context.Context, order dto.CreateOrderRequest) (dto.OrderResponse, error)
+	CreateOrder(ctx context.Context, order dto.CreateOrderRequest) (dto.OrderResponse, error)
+	GetOrders(ctx context.Context) ([]dto.OrderResponse, error)
 }
 type Food interface {
 	AddFood(ctx context.Context, meal db.Meal) (db.Meal, error)

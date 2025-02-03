@@ -39,7 +39,7 @@ func InitModule(
 	}
 }
 
-func (o *clientOrder) CreatedOrder(ctx context.Context, order dto.CreateOrderRequest) (dto.OrderResponse, error) {
+func (o *clientOrder) CreateOrder(ctx context.Context, order dto.CreateOrderRequest) (dto.OrderResponse, error) {
 	if err := validation.ValidateStruct(&order,
 		validation.Field(&order.UserID, validation.Required),
 		validation.Field(&order.Item, validation.Required),
@@ -96,7 +96,7 @@ func (o *clientOrder) CreatedOrder(ctx context.Context, order dto.CreateOrderReq
 		price = price.Add(item.Price.Mul(decimal.NewFromInt32(item.Quantity.Int32)))
 	}
 
-	createdOrder, err := o.storage.CreatedOrder(ctx, dto.CreateOrderRequest{
+	createdOrder, err := o.storage.CreateOrder(ctx, dto.CreateOrderRequest{
 		UserID:      order.UserID,
 		OrderStatus: order.OrderStatus,
 		TotalPrice:  price,
@@ -140,4 +140,51 @@ func (o *clientOrder) CreatedOrder(ctx context.Context, order dto.CreateOrderReq
 
 	return orderResponse, nil
 
+}
+
+func (o *clientOrder) GetOrders(ctx context.Context) ([]dto.OrderResponse, error) {
+	ordersWithItems, err := o.storage.GetOrders(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	orderMap := make(map[uuid.UUID]*dto.OrderResponse)
+
+	for _, order := range ordersWithItems {
+		if _, exists := orderMap[order.OrderID]; !exists {
+			user, err := o.userStorage.GetCustomerByID(ctx, order.UserID.UUID)
+			if err != nil {
+				return nil, err
+			}
+
+			orderMap[order.OrderID] = &dto.OrderResponse{
+				OrderID:     order.OrderID,
+				OrderStatus: order.OrderStatus,
+				TotalPrice:  order.TotalPrice,
+				User:        user,
+				OrderItem:   []dto.OrderItem{},
+				CreatedAt:   order.CreatedAt,
+				ModifiedAt:  order.ModifiedAt,
+			}
+		}
+
+		// If order_item exists, append it to the respective order
+		if order.OrderItemID.Valid {
+			orderMap[order.OrderID].OrderItem = append(orderMap[order.OrderID].OrderItem, dto.OrderItem{
+				OrderItemID: order.OrderItemID,
+				OrderID:     uuid.NullUUID{UUID: order.OrderID, Valid: true},
+				MealID:      order.MealID,
+				Quantity:    order.Quantity,
+				Price:       order.Price.Decimal,
+			})
+		}
+	}
+
+	// Convert map values to slice
+	fetchedOrders := make([]dto.OrderResponse, 0, len(orderMap))
+	for _, order := range orderMap {
+		fetchedOrders = append(fetchedOrders, *order)
+	}
+
+	return fetchedOrders, nil
 }
