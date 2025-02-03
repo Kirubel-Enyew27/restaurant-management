@@ -62,3 +62,35 @@ func (q *Queries) GetOrderItemByID(ctx context.Context, orderItemID uuid.UUID) (
 	)
 	return i, err
 }
+
+const getOrderItemByOrderID = `-- name: GetOrderItemByOrderID :many
+SELECT order_item_id, order_id, meal_id, quantity, price
+FROM order_items
+WHERE order_id = $1
+`
+
+func (q *Queries) GetOrderItemByOrderID(ctx context.Context, orderID uuid.NullUUID) ([]OrderItem, error) {
+	rows, err := q.db.Query(ctx, getOrderItemByOrderID, orderID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OrderItem
+	for rows.Next() {
+		var i OrderItem
+		if err := rows.Scan(
+			&i.OrderItemID,
+			&i.OrderID,
+			&i.MealID,
+			&i.Quantity,
+			&i.Price,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

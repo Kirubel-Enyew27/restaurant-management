@@ -7,3 +7,8 @@ RETURNING order_item_id, order_id, meal_id, quantity, price;
 SELECT order_item_id, order_id, meal_id, quantity, price
 FROM order_items
 WHERE order_item_id = $1;
+
+-- name: GetOrderItemByOrderID :many
+SELECT order_item_id, order_id, meal_id, quantity, price
+FROM order_items
+WHERE order_id = $1;

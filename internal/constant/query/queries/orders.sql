@@ -9,10 +9,20 @@ FROM orders
 WHERE order_id = $1;
 
 -- name: ListOrders :many
-SELECT order_id, user_id, order_status, total_price, created_at, modified_at
-FROM orders
-ORDER BY created_at DESC
-LIMIT $1 OFFSET $2;
+	SELECT 
+		o.order_id,
+		o.user_id,
+		o.order_status,
+		o.total_price,
+		o.created_at,
+		o.modified_at,
+		oi.order_item_id,
+		oi.meal_id,
+		oi.quantity,
+		oi.price
+	FROM orders o
+	LEFT JOIN order_items oi ON o.order_id = oi.order_id
+	ORDER BY o.created_at DESC;
 
 -- name: UpdateOrderStatus :one
 UPDATE orders

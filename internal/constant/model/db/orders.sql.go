@@ -70,26 +70,44 @@ func (q *Queries) GetOrderByID(ctx context.Context, orderID uuid.UUID) (Order, e
 }
 
 const listOrders = `-- name: ListOrders :many
-SELECT order_id, user_id, order_status, total_price, created_at, modified_at
-FROM orders
-ORDER BY created_at DESC
-LIMIT $1 OFFSET $2
+	SELECT 
+		o.order_id,
+		o.user_id,
+		o.order_status,
+		o.total_price,
+		o.created_at,
+		o.modified_at,
+		oi.order_item_id,
+		oi.meal_id,
+		oi.quantity,
+		oi.price
+	FROM orders o
+	LEFT JOIN order_items oi ON o.order_id = oi.order_id
+	ORDER BY o.created_at DESC
 `
 
-type ListOrdersParams struct {
-	Limit  int32
-	Offset int32
+type ListOrdersRow struct {
+	OrderID     uuid.UUID
+	UserID      uuid.NullUUID
+	OrderStatus sql.NullString
+	TotalPrice  decimal.Decimal
+	CreatedAt   sql.NullTime
+	ModifiedAt  sql.NullTime
+	OrderItemID uuid.NullUUID
+	MealID      uuid.NullUUID
+	Quantity    sql.NullInt32
+	Price       decimal.NullDecimal
 }
 
-func (q *Queries) ListOrders(ctx context.Context, arg ListOrdersParams) ([]Order, error) {
-	rows, err := q.db.Query(ctx, listOrders, arg.Limit, arg.Offset)
+func (q *Queries) ListOrders(ctx context.Context) ([]ListOrdersRow, error) {
+	rows, err := q.db.Query(ctx, listOrders)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Order
+	var items []ListOrdersRow
 	for rows.Next() {
-		var i Order
+		var i ListOrdersRow
 		if err := rows.Scan(
 			&i.OrderID,
 			&i.UserID,
@@ -97,6 +115,10 @@ func (q *Queries) ListOrders(ctx context.Context, arg ListOrdersParams) ([]Order
 			&i.TotalPrice,
 			&i.CreatedAt,
 			&i.ModifiedAt,
+			&i.OrderItemID,
+			&i.MealID,
+			&i.Quantity,
+			&i.Price,
 		); err != nil {
 			return nil, err
 		}
