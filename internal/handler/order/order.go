@@ -65,3 +65,27 @@ func (o *order) GetOrders(c *gin.Context) {
 
 	response.SendSuccessResponse(c, http.StatusOK, orders, nil)
 }
+
+func (o *order) UpdateOrder(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), o.contextTimeout)
+	defer cancel()
+
+	var req dto.CreateOrderRequest
+
+	orderID := c.Param("id")
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		err := errors.ErrBadRequest.Wrap(err, "failed to bind request body")
+		o.logger.Info("invalid request body", zap.Error(err))
+		_ = c.Error(err)
+		return
+	}
+
+	updatedOrder, err := o.orderModule.UpdateOrder(ctx, orderID, req)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	response.SendSuccessResponse(c, http.StatusOK, updatedOrder, nil)
+}
