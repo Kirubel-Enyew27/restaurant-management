@@ -130,20 +130,24 @@ func (q *Queries) ListOrders(ctx context.Context) ([]ListOrdersRow, error) {
 	return items, nil
 }
 
-const updateOrderStatus = `-- name: UpdateOrderStatus :one
+const updateOrder = `-- name: UpdateOrder :one
 UPDATE orders
-SET order_status = $2
+SET 
+    order_status = COALESCE($2, order_status), 
+    total_price = COALESCE($3, total_price), 
+    modified_at = now()
 WHERE order_id = $1
 RETURNING order_id, user_id, order_status, total_price, created_at, modified_at
 `
 
-type UpdateOrderStatusParams struct {
+type UpdateOrderParams struct {
 	OrderID     uuid.UUID
 	OrderStatus sql.NullString
+	TotalPrice  decimal.NullDecimal
 }
 
-func (q *Queries) UpdateOrderStatus(ctx context.Context, arg UpdateOrderStatusParams) (Order, error) {
-	row := q.db.QueryRow(ctx, updateOrderStatus, arg.OrderID, arg.OrderStatus)
+func (q *Queries) UpdateOrder(ctx context.Context, arg UpdateOrderParams) (Order, error) {
+	row := q.db.QueryRow(ctx, updateOrder, arg.OrderID, arg.OrderStatus, arg.TotalPrice)
 	var i Order
 	err := row.Scan(
 		&i.OrderID,

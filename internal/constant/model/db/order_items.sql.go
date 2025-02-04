@@ -94,3 +94,41 @@ func (q *Queries) GetOrderItemByOrderID(ctx context.Context, orderID uuid.NullUU
 	}
 	return items, nil
 }
+
+const updateOrderItem = `-- name: UpdateOrderItem :one
+UPDATE order_items
+SET 
+    order_id = COALESCE($2, order_id),
+    meal_id = COALESCE($3, meal_id), 
+    quantity = COALESCE($4, quantity),
+    price = COALESCE($5, price)
+WHERE order_item_id = $1
+RETURNING order_item_id, order_id, meal_id, quantity, price
+`
+
+type UpdateOrderItemParams struct {
+	OrderItemID uuid.UUID
+	OrderID     uuid.NullUUID
+	MealID      uuid.NullUUID
+	Quantity    sql.NullInt32
+	Price       decimal.NullDecimal
+}
+
+func (q *Queries) UpdateOrderItem(ctx context.Context, arg UpdateOrderItemParams) (OrderItem, error) {
+	row := q.db.QueryRow(ctx, updateOrderItem,
+		arg.OrderItemID,
+		arg.OrderID,
+		arg.MealID,
+		arg.Quantity,
+		arg.Price,
+	)
+	var i OrderItem
+	err := row.Scan(
+		&i.OrderItemID,
+		&i.OrderID,
+		&i.MealID,
+		&i.Quantity,
+		&i.Price,
+	)
+	return i, err
+}

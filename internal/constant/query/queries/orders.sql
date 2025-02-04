@@ -24,9 +24,12 @@ WHERE order_id = $1;
 	LEFT JOIN order_items oi ON o.order_id = oi.order_id
 	ORDER BY o.created_at DESC;
 
--- name: UpdateOrderStatus :one
+-- name: UpdateOrder :one
 UPDATE orders
-SET order_status = $2
+SET 
+    order_status = COALESCE(sqlc.narg('order_status'), order_status), 
+    total_price = COALESCE(sqlc.narg('total_price'), total_price), 
+    modified_at = now()
 WHERE order_id = $1
 RETURNING order_id, user_id, order_status, total_price, created_at, modified_at;
 
