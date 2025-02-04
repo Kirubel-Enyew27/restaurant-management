@@ -89,3 +89,18 @@ func (o *order) UpdateOrder(c *gin.Context) {
 
 	response.SendSuccessResponse(c, http.StatusOK, updatedOrder, nil)
 }
+
+func (o *order) DeleteOrder(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), o.contextTimeout)
+	defer cancel()
+
+	orderID := c.Param("id")
+
+	err := o.orderModule.DeleteOrder(ctx, orderID)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	response.SendSuccessResponse(c, http.StatusOK, err, nil)
+}

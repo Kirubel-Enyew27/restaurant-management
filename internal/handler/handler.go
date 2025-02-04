@@ -15,6 +15,7 @@ type Order interface {
 	CreateOrder(c *gin.Context)
 	GetOrders(c *gin.Context)
 	UpdateOrder(c *gin.Context)
+	DeleteOrder(c *gin.Context)
 }
 type Food interface {
 	AddFood(c *gin.Context)
