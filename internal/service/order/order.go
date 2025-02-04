@@ -2,7 +2,9 @@ package order
 
 import (
 	"context"
+	"database/sql"
 	"restaurant/internal/constant/errors"
+	"restaurant/internal/constant/model/db"
 	"restaurant/internal/constant/model/dto"
 	"restaurant/internal/service"
 	"restaurant/internal/storage"
@@ -168,7 +170,6 @@ func (o *clientOrder) GetOrders(ctx context.Context) ([]dto.OrderResponse, error
 			}
 		}
 
-		// If order_item exists, append it to the respective order
 		if order.OrderItemID.Valid {
 			orderMap[order.OrderID].OrderItem = append(orderMap[order.OrderID].OrderItem, dto.OrderItem{
 				OrderItemID: order.OrderItemID,
@@ -180,11 +181,81 @@ func (o *clientOrder) GetOrders(ctx context.Context) ([]dto.OrderResponse, error
 		}
 	}
 
-	// Convert map values to slice
 	fetchedOrders := make([]dto.OrderResponse, 0, len(orderMap))
 	for _, order := range orderMap {
 		fetchedOrders = append(fetchedOrders, *order)
 	}
 
 	return fetchedOrders, nil
+}
+
+func (o *clientOrder) UpdateOrder(ctx context.Context, orderID string, order dto.CreateOrderRequest) (dto.OrderResponse, error) {
+	var updatedItems []dto.OrderItem
+	if order.Item != nil {
+		orderUUID, err := uuid.Parse(orderID)
+		if err != nil {
+			o.log.Error("failed to parse order id", zap.Error(err))
+			return dto.OrderResponse{}, errors.ErrInvalidUserInput.Wrap(err, "invalid order id")
+		}
+
+		order.OrderID = uuid.NullUUID{UUID: orderUUID, Valid: true}
+
+		var price decimal.Decimal
+		var UpdatedItems []db.OrderItem
+		for _, item := range order.Item {
+			_, err := o.foodStorage.GetFoodByID(ctx, item.MealID.UUID)
+			if err != nil {
+				return dto.OrderResponse{}, err
+			}
+
+			if item.OrderItemID.UUID != uuid.Nil {
+				updatedItem, err := o.storage.UpdateOrderItem(ctx, db.OrderItem{
+					OrderItemID: item.OrderItemID.UUID,
+					OrderID:     order.OrderID,
+					MealID:      item.MealID,
+					Quantity:    item.Quantity,
+					Price:       item.Price,
+				})
+
+				if err != nil {
+					return dto.OrderResponse{}, err
+				}
+				UpdatedItems = append(UpdatedItems, updatedItem)
+			}
+			price = price.Add(item.Price.Mul(decimal.NewFromInt32(item.Quantity.Int32)))
+		}
+
+		order.TotalPrice = price
+
+		for _, upItem := range UpdatedItems {
+			updatedItems = append(updatedItems, dto.OrderItem{
+				OrderItemID: uuid.NullUUID{UUID: upItem.OrderItemID, Valid: true},
+				OrderID:     upItem.OrderID,
+				MealID:      upItem.MealID,
+				Quantity:    upItem.Quantity,
+				Price:       upItem.Price,
+			})
+		}
+	}
+
+	updatedOrder, err := o.storage.UpdateOrder(ctx, db.Order{
+		OrderID:     order.OrderID.UUID,
+		OrderStatus: sql.NullString{String: order.OrderStatus, Valid: true},
+		TotalPrice:  order.TotalPrice,
+	})
+	if err != nil {
+		return dto.OrderResponse{}, err
+	}
+
+	UpdatedOrderResponse := dto.OrderResponse{
+		OrderID:     updatedOrder.OrderID,
+		OrderStatus: updatedOrder.OrderStatus,
+		TotalPrice:  updatedOrder.TotalPrice,
+		User:        db.User{UserID: order.UserID.UUID},
+		OrderItem:   updatedItems,
+		CreatedAt:   updatedOrder.CreatedAt,
+		ModifiedAt:  updatedOrder.ModifiedAt,
+	}
+
+	return UpdatedOrderResponse, nil
 }
