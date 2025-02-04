@@ -259,3 +259,18 @@ func (o *clientOrder) UpdateOrder(ctx context.Context, orderID string, order dto
 
 	return UpdatedOrderResponse, nil
 }
+
+func (o *clientOrder) DeleteOrder(ctx context.Context, orderID string) error {
+	orderUUID, err := uuid.Parse(orderID)
+	if err != nil {
+		o.log.Error("failed to parse order id", zap.Error(err))
+		return errors.ErrInvalidUserInput.Wrap(err, "invalid order id")
+	}
+
+	order, err := o.storage.GetOrderByID(ctx, orderUUID)
+	if err != nil {
+		return err
+	}
+
+	return o.storage.DeleteOrder(ctx, order.OrderID)
+}
