@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
+	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 )
 
@@ -134,4 +135,57 @@ func (o *order) GetOrders(ctx context.Context) ([]db.ListOrdersRow, error) {
 	}
 
 	return orders, nil
+}
+
+func (o *order) UpdateOrder(ctx context.Context, order db.Order) (db.Order, error) {
+	updateParams := db.UpdateOrderParams{
+		OrderID:     order.OrderID,
+		OrderStatus: sql.NullString{},
+		TotalPrice:  decimal.NullDecimal{},
+	}
+
+	if order.OrderStatus.String != "" {
+		updateParams.OrderStatus = sql.NullString{String: order.OrderStatus.String, Valid: true}
+	}
+	if order.TotalPrice.IsZero() == false {
+		updateParams.TotalPrice = decimal.NullDecimal{Decimal: order.TotalPrice, Valid: true}
+	}
+
+	updatedOrder, err := o.db.Queries.UpdateOrder(ctx, updateParams)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			o.log.Error("order to be updated does not exist", zap.Error(err))
+			return db.Order{}, errors.ErrNoRecordFound.Wrap(err, "order not found")
+		}
+		o.log.Error("failed to update order", zap.Error(err))
+		return db.Order{}, errors.ErrUnableToUpdate.Wrap(err, "failed to update order")
+	}
+
+	return updatedOrder, nil
+}
+
+func (o *order) UpdateOrderItem(ctx context.Context, orderItem db.OrderItem) (db.OrderItem, error) {
+	updateParams := db.UpdateOrderItemParams{
+		OrderItemID: orderItem.OrderItemID,
+		OrderID:     orderItem.OrderID,
+		MealID:      orderItem.MealID,
+		Quantity:    orderItem.Quantity,
+		Price:       decimal.NullDecimal{},
+	}
+
+	if orderItem.Price.IsZero() == false {
+		updateParams.Price = decimal.NullDecimal{Decimal: orderItem.Price, Valid: true}
+	}
+
+	updatedOrderItem, err := o.db.Queries.UpdateOrderItem(ctx, updateParams)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			o.log.Error("order item to be updated does not exist", zap.Error(err))
+			return db.OrderItem{}, errors.ErrNoRecordFound.Wrap(err, "order item not found")
+		}
+		o.log.Error("failed to update order item", zap.Error(err))
+		return db.OrderItem{}, errors.ErrUnableToUpdate.Wrap(err, "failed to update order item")
+	}
+
+	return updatedOrderItem, nil
 }
