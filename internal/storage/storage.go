@@ -26,6 +26,7 @@ type Order interface {
 	GetOrderItemByOrderID(ctx context.Context, orderItemID uuid.NullUUID) ([]db.OrderItem, error)
 	UpdateOrder(ctx context.Context, order db.Order) (db.Order, error)
 	UpdateOrderItem(ctx context.Context, orderItem db.OrderItem) (db.OrderItem, error)
+	DeleteOrder(ctx context.Context, orderID uuid.UUID) error
 }
 type Customer interface {
 	Register(ctx context.Context, user db.User) (db.User, error)

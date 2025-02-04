@@ -189,3 +189,13 @@ func (o *order) UpdateOrderItem(ctx context.Context, orderItem db.OrderItem) (db
 
 	return updatedOrderItem, nil
 }
+
+func (o *order) DeleteOrder(ctx context.Context, orderID uuid.UUID) error {
+	err := o.db.Queries.DeleteOrder(ctx, orderID)
+	if err != nil {
+		o.log.Error("error deleting order", zap.Error(err))
+		return errors.ErrDBDelError.Wrap(err, "failed to delete order")
+	}
+
+	return nil
+}
