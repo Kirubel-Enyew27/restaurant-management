@@ -35,10 +35,8 @@ func Intiate() {
 	// 	sampleLogger.Info("using default config name 'config'")
 	// }
 
-	err = godotenv.Load("./config/.env")
-	if err != nil {
-		sampleLogger.Fatal("unable to load .env file", zap.Error(err))
-	}
+	_ = godotenv.Load("./config/.env")
+
 	// InitConfig(configName, "config", sampleLogger)
 	sampleLogger.Info("config initialized")
 
