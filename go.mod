@@ -14,6 +14,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.18.1
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v4 v4.18.3
+	github.com/joho/godotenv v1.5.1
 	github.com/joomcode/errorx v1.2.0
 	github.com/shopspring/decimal v1.2.0
 	github.com/spf13/viper v1.19.0

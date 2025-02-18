@@ -3,12 +3,13 @@ package response
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"restaurant/internal/constant/errors"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/joomcode/errorx"
-	"github.com/spf13/viper"
 )
 
 func SendSuccessResponse(ctx *gin.Context, statusCode int, data interface{},
@@ -32,8 +33,8 @@ func SendErrorResponse(ctx *gin.Context, err *ErrorResponse) {
 }
 
 func GetErrorFrom(err error) *ErrorResponse {
-	debugMode := viper.GetBool("debug")
-
+	// debugMode := viper.GetBool("debug")
+	debugMode := strings.ToLower(os.Getenv("DEBUG"))
 	for _, e := range errors.Error {
 		if errorx.IsOfType(err, e.ErrorType) {
 			er := errorx.Cast(err)
@@ -43,7 +44,7 @@ func GetErrorFrom(err error) *ErrorResponse {
 				FieldError: ErrorFields(er.Cause()),
 			}
 
-			if debugMode {
+			if debugMode == "true" {
 				res.Description = fmt.Sprintf("Error: %v", er)
 				res.StackTrace = fmt.Sprintf("%+v", errorx.EnsureStackTrace(err))
 			}

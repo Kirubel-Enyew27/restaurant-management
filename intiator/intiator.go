@@ -8,11 +8,13 @@ import (
 	"os/signal"
 	"restaurant/internal/constant/model/persistencedb"
 	"restaurant/internal/handler/middleware"
+	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
+	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 )
 
@@ -25,27 +27,33 @@ func Intiate() {
 	}
 
 	sampleLogger.Info("initializing config")
-	configName := "config"
-	if name := os.Getenv("CONFIG_NAME"); name != "" {
-		configName = name
-		sampleLogger.Info(fmt.Sprintf("config name is set to %s", configName))
-	} else {
-		sampleLogger.Info("using default config name 'config'")
+	// configName := "config"
+	// if name := os.Getenv("CONFIG_NAME"); name != "" {
+	// 	configName = name
+	// 	sampleLogger.Info(fmt.Sprintf("config name is set to %s", configName))
+	// } else {
+	// 	sampleLogger.Info("using default config name 'config'")
+	// }
+
+	err = godotenv.Load("./config/.env")
+	if err != nil {
+		sampleLogger.Fatal("unable to load .env file", zap.Error(err))
 	}
-	InitConfig(configName, "config", sampleLogger)
+	// InitConfig(configName, "config", sampleLogger)
 	sampleLogger.Info("config initialized")
 
 	sampleLogger.Info("initializing database")
-	pgxConn := InitDB(viper.GetString("database.url"), sampleLogger)
+	pgxConn := InitDB(os.Getenv("DATABASE_URL"), sampleLogger)
 	sampleLogger.Info("database initialized")
 
 	sampleLogger.Info("intializing cache")
-	cache := InitCache(viper.GetString("redis.url"), sampleLogger)
+	cache := InitCache(os.Getenv("REDIS_URL"), sampleLogger)
 	sampleLogger.Info("cache intialized")
 
-	if viper.GetBool("migration.active") {
+	// if viper.GetBool("migration.active")
+	if strings.ToLower(os.Getenv("MIGRATION_ACTIVE")) == "true" {
 		sampleLogger.Info("initializing migration")
-		m := InitiateMigration(viper.GetString("migration.path"), viper.GetString("database.url"), sampleLogger)
+		m := InitiateMigration(os.Getenv("MIGRATION_PATH"), os.Getenv("DATABASE_URL"), sampleLogger)
 		UpMigration(m, sampleLogger)
 		sampleLogger.Info("migration initialized")
 	}
@@ -56,7 +64,7 @@ func Intiate() {
 
 	sampleLogger.Info("initializing cache layer")
 	cacheLayer := InitCacheLayer(CacheOptions{Redis: cache,
-		OrderExpirationTime: viper.GetDuration("dispatch.order_expiration_time")}, sampleLogger)
+		OrderExpirationTime: 5 * time.Minute}, sampleLogger)
 	sampleLogger.Info("cache layer initialized")
 
 	sampleLogger.Info("initializing module")
@@ -64,7 +72,11 @@ func Intiate() {
 	sampleLogger.Info("module initialized")
 
 	sampleLogger.Info("initializing handler")
-	handler := InitHandler(module, sampleLogger, viper.GetDuration("server.timeout"))
+	serverTimeout, err := time.ParseDuration(os.Getenv("SERVER_TIMEOUT"))
+	if err != nil {
+		sampleLogger.Fatal("unable to parse server timeout duration", zap.Error(err))
+	}
+	handler := InitHandler(module, sampleLogger, serverTimeout)
 	sampleLogger.Info("handler initialized")
 
 	sampleLogger.Info("initializing server")
@@ -77,18 +89,27 @@ func Intiate() {
 	v1 := server.Group("/v1")
 	InitRouter(v1, handler, module, sampleLogger)
 	sampleLogger.Info("router initialized")
+
+	readHeaderTimeout, err := time.ParseDuration(os.Getenv("SERVER_READ_HEADER_TIMEOUT"))
+	if err != nil {
+		sampleLogger.Fatal("unable to parse read header timeout duration", zap.Error(err))
+	}
 	srv := &http.Server{
-		Addr:              viper.GetString("server.host") + ":" + viper.GetString("server.port"),
-		ReadHeaderTimeout: viper.GetDuration("read_header_timeout"),
+		Addr:              os.Getenv("SERVER_HOST") + ":" + os.Getenv("SERVER_PORT"),
+		ReadHeaderTimeout: readHeaderTimeout,
 		Handler:           server,
 	}
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 
+	serverPort, err := strconv.Atoi(os.Getenv("SERVER_PORT"))
+	if err != nil {
+		sampleLogger.Fatal("unable to parse server port", zap.Error(err))
+	}
 	sampleLogger.Info("server started",
-		zap.String("host", viper.GetString("server.host")),
-		zap.Int("port", viper.GetInt("server.port")),
+		zap.String("host", os.Getenv("SERVER_HOST")),
+		zap.Int("port", serverPort),
 		zap.Time("start_time", time.Now()))
 
 	go func() {
@@ -101,12 +122,12 @@ func Intiate() {
 	sig := <-quit
 	sampleLogger.Info("server shutting down", zap.String("signal", sig.String()))
 
-	timeout := viper.GetDuration("server.timeout")
-	if timeout == 0 {
-		timeout = 5 * time.Second // Default to 5 seconds
-		sampleLogger.Warn("server.timeout not set, using default", zap.Duration("timeout", timeout))
+	// timeout := viper.GetDuration("server.timeout")
+	if serverTimeout == 0 {
+		serverTimeout = 5 * time.Second // Default to 5 seconds
+		sampleLogger.Warn("server timeout not set, using default", zap.Duration("timeout", serverTimeout))
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), serverTimeout)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {

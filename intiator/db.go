@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
@@ -16,12 +15,12 @@ func InitDB(url string, log *zap.Logger) *pgxpool.Pool {
 		log.Fatal(fmt.Sprintf("Failed to connect to database: %v", err))
 	}
 
-	idleConnTimeout := viper.GetDuration("database.idle_conn_timeout")
-	if idleConnTimeout == 0 {
-		idleConnTimeout = 4 * time.Minute
-	}
+	// idleConnTimeout := viper.GetDuration("database.idle_conn_timeout")
+	// if idleConnTimeout == 0 {
+	// 	idleConnTimeout = 4 * time.Minute
+	// }
 
-	config.MaxConnIdleTime = idleConnTimeout
+	config.MaxConnIdleTime = 4 * time.Minute
 	conn, err := pgxpool.ConnectConfig(context.Background(), config)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("Failed to connect to database: %v", err))

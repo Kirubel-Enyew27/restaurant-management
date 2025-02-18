@@ -2,11 +2,11 @@ package utils
 
 import (
 	"fmt"
+	"os"
 	"restaurant/internal/constant/errors"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -42,7 +42,8 @@ func GenerateJWT(username string, expirationTime time.Time, logger *zap.Logger) 
 		},
 	}
 
-	secretKey := viper.GetString("auth.jwt-key")
+	// secretKey := viper.GetString("auth.jwt-key")
+	secretKey := os.Getenv("JWT_KEY")
 	if secretKey == "" {
 		return "", fmt.Errorf("jwtKey is not set in environment variables")
 	}

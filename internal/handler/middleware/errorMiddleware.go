@@ -3,18 +3,20 @@ package middleware
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"restaurant/internal/constant/errors"
 	response2 "restaurant/internal/constant/model/response"
+	"strings"
 
 	"github.com/joomcode/errorx"
-	"github.com/spf13/viper"
 
 	"github.com/gin-gonic/gin"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 func ErrorHandler() gin.HandlerFunc {
-	debugMode := viper.GetBool("debug")
+	// debugMode := viper.GetBool("debug")
+	debugMode := strings.ToLower(os.Getenv("DEBUG"))
 	return func(c *gin.Context) {
 		c.Next()
 		if len(c.Errors) > 0 {
@@ -24,7 +26,7 @@ func ErrorHandler() gin.HandlerFunc {
 			response := CastErrorResponse(err)
 			if response != nil {
 				er := errorx.Cast(err)
-				if debugMode {
+				if debugMode == "true" {
 					response.Description = fmt.Sprintf("Error: %v", er)
 					response.StackTrace = fmt.Sprintf("%+v", errorx.EnsureStackTrace(err))
 				}
