@@ -88,7 +88,17 @@ func (fd *food) GetFoodByID(ctx context.Context, mealID uuid.UUID) (db.Meal, err
 		return db.Meal{}, errors.ErrUnableToGet.Wrap(err, "failed to get meal")
 	}
 
-	return meal, nil
+	Meal := db.Meal{
+		MealID:     meal.MealID,
+		Name:       meal.Name,
+		Price:      meal.Price,
+		Available:  meal.Available,
+		CreatedAt:  meal.CreatedAt,
+		ModifiedAt: meal.ModifiedAt,
+		ImgUrl:     meal.ImgUrl,
+	}
+
+	return Meal, nil
 
 }
 
@@ -119,6 +129,7 @@ func (fd *food) UpdateFood(ctx context.Context, meal db.Meal) (db.Meal, error) {
 	updateParams := db.UpdateMealParams{
 		MealID:    meal.MealID,
 		Name:      sql.NullString{},
+		ImgUrl:    sql.NullString{},
 		Price:     decimal.NullDecimal{},
 		Available: sql.NullBool{},
 	}
@@ -127,6 +138,9 @@ func (fd *food) UpdateFood(ctx context.Context, meal db.Meal) (db.Meal, error) {
 	if meal.Name != "" {
 		updateParams.Name = sql.NullString{String: meal.Name, Valid: true}
 	}
+	if meal.ImgUrl.String != "" {
+		updateParams.ImgUrl = sql.NullString{String: meal.ImgUrl.String, Valid: true}
+	}
 	if meal.Price.IsZero() == false {
 		updateParams.Price = decimal.NullDecimal{Decimal: meal.Price, Valid: true}
 	}
@@ -134,7 +148,7 @@ func (fd *food) UpdateFood(ctx context.Context, meal db.Meal) (db.Meal, error) {
 		updateParams.Available = sql.NullBool{Bool: meal.Available.Bool, Valid: true}
 	}
 
-	updatedMeal, err := fd.db.Queries.UpdateMeal(ctx, updateParams)
+	Meal, err := fd.db.Queries.UpdateMeal(ctx, updateParams)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			fd.log.Error("meal to be updated does not exist", zap.Error(err))
@@ -142,6 +156,16 @@ func (fd *food) UpdateFood(ctx context.Context, meal db.Meal) (db.Meal, error) {
 		}
 		fd.log.Error("failed to update meal", zap.Error(err))
 		return db.Meal{}, errors.ErrUnableToUpdate.Wrap(err, "failed to update meal")
+	}
+
+	updatedMeal := db.Meal{
+		MealID:     Meal.MealID,
+		Name:       Meal.Name,
+		Price:      Meal.Price,
+		Available:  Meal.Available,
+		CreatedAt:  Meal.CreatedAt,
+		ModifiedAt: Meal.ModifiedAt,
+		ImgUrl:     Meal.ImgUrl,
 	}
 
 	return updatedMeal, nil

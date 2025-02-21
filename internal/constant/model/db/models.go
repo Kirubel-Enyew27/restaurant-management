@@ -18,6 +18,7 @@ type Meal struct {
 	Available  sql.NullBool
 	CreatedAt  sql.NullTime
 	ModifiedAt sql.NullTime
+	ImgUrl     sql.NullString
 }
 
 type Order struct {

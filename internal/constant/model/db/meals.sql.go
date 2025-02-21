@@ -16,7 +16,7 @@ import (
 const createMeal = `-- name: CreateMeal :one
 INSERT INTO meals (name, price)
 VALUES ($1, $2)
-RETURNING meal_id, name, price, available, created_at, modified_at
+RETURNING meal_id, name, img_url, price, available, created_at, modified_at
 `
 
 type CreateMealParams struct {
@@ -24,12 +24,23 @@ type CreateMealParams struct {
 	Price decimal.Decimal
 }
 
-func (q *Queries) CreateMeal(ctx context.Context, arg CreateMealParams) (Meal, error) {
+type CreateMealRow struct {
+	MealID     uuid.UUID
+	Name       string
+	ImgUrl     sql.NullString
+	Price      decimal.Decimal
+	Available  sql.NullBool
+	CreatedAt  sql.NullTime
+	ModifiedAt sql.NullTime
+}
+
+func (q *Queries) CreateMeal(ctx context.Context, arg CreateMealParams) (CreateMealRow, error) {
 	row := q.db.QueryRow(ctx, createMeal, arg.Name, arg.Price)
-	var i Meal
+	var i CreateMealRow
 	err := row.Scan(
 		&i.MealID,
 		&i.Name,
+		&i.ImgUrl,
 		&i.Price,
 		&i.Available,
 		&i.CreatedAt,
@@ -49,22 +60,33 @@ func (q *Queries) DeleteMeal(ctx context.Context, mealID uuid.UUID) error {
 }
 
 const getAllMeals = `-- name: GetAllMeals :many
-SELECT meal_id, name, price, available, created_at, modified_at
+SELECT meal_id, name, img_url, price, available, created_at, modified_at
 FROM meals
 `
 
-func (q *Queries) GetAllMeals(ctx context.Context) ([]Meal, error) {
+type GetAllMealsRow struct {
+	MealID     uuid.UUID
+	Name       string
+	ImgUrl     sql.NullString
+	Price      decimal.Decimal
+	Available  sql.NullBool
+	CreatedAt  sql.NullTime
+	ModifiedAt sql.NullTime
+}
+
+func (q *Queries) GetAllMeals(ctx context.Context) ([]GetAllMealsRow, error) {
 	rows, err := q.db.Query(ctx, getAllMeals)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Meal
+	var items []GetAllMealsRow
 	for rows.Next() {
-		var i Meal
+		var i GetAllMealsRow
 		if err := rows.Scan(
 			&i.MealID,
 			&i.Name,
+			&i.ImgUrl,
 			&i.Price,
 			&i.Available,
 			&i.CreatedAt,
@@ -81,17 +103,28 @@ func (q *Queries) GetAllMeals(ctx context.Context) ([]Meal, error) {
 }
 
 const getMealByID = `-- name: GetMealByID :one
-SELECT meal_id, name, price, available, created_at, modified_at
+SELECT meal_id, name, img_url, price, available, created_at, modified_at
 FROM meals
 WHERE meal_id = $1
 `
 
-func (q *Queries) GetMealByID(ctx context.Context, mealID uuid.UUID) (Meal, error) {
+type GetMealByIDRow struct {
+	MealID     uuid.UUID
+	Name       string
+	ImgUrl     sql.NullString
+	Price      decimal.Decimal
+	Available  sql.NullBool
+	CreatedAt  sql.NullTime
+	ModifiedAt sql.NullTime
+}
+
+func (q *Queries) GetMealByID(ctx context.Context, mealID uuid.UUID) (GetMealByIDRow, error) {
 	row := q.db.QueryRow(ctx, getMealByID, mealID)
-	var i Meal
+	var i GetMealByIDRow
 	err := row.Scan(
 		&i.MealID,
 		&i.Name,
+		&i.ImgUrl,
 		&i.Price,
 		&i.Available,
 		&i.CreatedAt,
@@ -101,17 +134,28 @@ func (q *Queries) GetMealByID(ctx context.Context, mealID uuid.UUID) (Meal, erro
 }
 
 const getMealByName = `-- name: GetMealByName :one
-SELECT meal_id, name, price, available, created_at, modified_at
+SELECT meal_id, name, img_url, price, available, created_at, modified_at
 FROM meals
 WHERE name = $1
 `
 
-func (q *Queries) GetMealByName(ctx context.Context, name string) (Meal, error) {
+type GetMealByNameRow struct {
+	MealID     uuid.UUID
+	Name       string
+	ImgUrl     sql.NullString
+	Price      decimal.Decimal
+	Available  sql.NullBool
+	CreatedAt  sql.NullTime
+	ModifiedAt sql.NullTime
+}
+
+func (q *Queries) GetMealByName(ctx context.Context, name string) (GetMealByNameRow, error) {
 	row := q.db.QueryRow(ctx, getMealByName, name)
-	var i Meal
+	var i GetMealByNameRow
 	err := row.Scan(
 		&i.MealID,
 		&i.Name,
+		&i.ImgUrl,
 		&i.Price,
 		&i.Available,
 		&i.CreatedAt,
@@ -124,31 +168,45 @@ const updateMeal = `-- name: UpdateMeal :one
 UPDATE meals
 SET
     name = COALESCE($2, name),
-    price = COALESCE($3, price),
-    available = COALESCE($4, available),
+    img_url = COALESCE($3, img_url),
+    price = COALESCE($4, price),
+    available = COALESCE($5, available),
     modified_at = now()
 WHERE meal_id = $1
-RETURNING meal_id, name, price, available, created_at, modified_at
+RETURNING meal_id, name, img_url, price, available, created_at, modified_at
 `
 
 type UpdateMealParams struct {
 	MealID    uuid.UUID
 	Name      sql.NullString
+	ImgUrl    sql.NullString
 	Price     decimal.NullDecimal
 	Available sql.NullBool
 }
 
-func (q *Queries) UpdateMeal(ctx context.Context, arg UpdateMealParams) (Meal, error) {
+type UpdateMealRow struct {
+	MealID     uuid.UUID
+	Name       string
+	ImgUrl     sql.NullString
+	Price      decimal.Decimal
+	Available  sql.NullBool
+	CreatedAt  sql.NullTime
+	ModifiedAt sql.NullTime
+}
+
+func (q *Queries) UpdateMeal(ctx context.Context, arg UpdateMealParams) (UpdateMealRow, error) {
 	row := q.db.QueryRow(ctx, updateMeal,
 		arg.MealID,
 		arg.Name,
+		arg.ImgUrl,
 		arg.Price,
 		arg.Available,
 	)
-	var i Meal
+	var i UpdateMealRow
 	err := row.Scan(
 		&i.MealID,
 		&i.Name,
+		&i.ImgUrl,
 		&i.Price,
 		&i.Available,
 		&i.CreatedAt,
