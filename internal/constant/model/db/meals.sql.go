@@ -14,14 +14,15 @@ import (
 )
 
 const createMeal = `-- name: CreateMeal :one
-INSERT INTO meals (name, price)
-VALUES ($1, $2)
+INSERT INTO meals (name, price, img_url)
+VALUES ($1, $2, $3)
 RETURNING meal_id, name, img_url, price, available, created_at, modified_at
 `
 
 type CreateMealParams struct {
-	Name  string
-	Price decimal.Decimal
+	Name   string
+	Price  decimal.Decimal
+	ImgUrl sql.NullString
 }
 
 type CreateMealRow struct {
@@ -35,7 +36,7 @@ type CreateMealRow struct {
 }
 
 func (q *Queries) CreateMeal(ctx context.Context, arg CreateMealParams) (CreateMealRow, error) {
-	row := q.db.QueryRow(ctx, createMeal, arg.Name, arg.Price)
+	row := q.db.QueryRow(ctx, createMeal, arg.Name, arg.Price, arg.ImgUrl)
 	var i CreateMealRow
 	err := row.Scan(
 		&i.MealID,

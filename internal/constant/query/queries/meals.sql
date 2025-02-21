@@ -1,6 +1,6 @@
 -- name: CreateMeal :one
-INSERT INTO meals (name, price)
-VALUES ($1, $2)
+INSERT INTO meals (name, price, img_url)
+VALUES ($1, $2, $3)
 RETURNING meal_id, name, img_url, price, available, created_at, modified_at;
 
 -- name: GetMealByID :one

@@ -28,8 +28,9 @@ func Init(db persistencedb.PersistenceDB, log *zap.Logger) storage.Food {
 
 func (fd *food) AddFood(ctx context.Context, meal db.Meal) (db.Meal, error) {
 	arg := db.CreateMealParams{
-		Name:  meal.Name,
-		Price: meal.Price,
+		Name:   meal.Name,
+		Price:  meal.Price,
+		ImgUrl: meal.ImgUrl,
 	}
 
 	newMeal, err := fd.db.Queries.CreateMeal(ctx, arg)
@@ -42,6 +43,7 @@ func (fd *food) AddFood(ctx context.Context, meal db.Meal) (db.Meal, error) {
 		MealID:     newMeal.MealID,
 		Name:       newMeal.Name,
 		Price:      newMeal.Price,
+		ImgUrl:     newMeal.ImgUrl,
 		Available:  newMeal.Available,
 		CreatedAt:  newMeal.CreatedAt,
 		ModifiedAt: newMeal.ModifiedAt,
@@ -68,6 +70,7 @@ func (fd *food) GetFoods(ctx context.Context) ([]db.Meal, error) {
 			MealID:     meal.MealID,
 			Name:       meal.Name,
 			Price:      meal.Price,
+			ImgUrl:     meal.ImgUrl,
 			Available:  meal.Available,
 			CreatedAt:  meal.CreatedAt,
 			ModifiedAt: meal.ModifiedAt,
@@ -92,10 +95,10 @@ func (fd *food) GetFoodByID(ctx context.Context, mealID uuid.UUID) (db.Meal, err
 		MealID:     meal.MealID,
 		Name:       meal.Name,
 		Price:      meal.Price,
+		ImgUrl:     meal.ImgUrl,
 		Available:  meal.Available,
 		CreatedAt:  meal.CreatedAt,
 		ModifiedAt: meal.ModifiedAt,
-		ImgUrl:     meal.ImgUrl,
 	}
 
 	return Meal, nil
@@ -117,6 +120,7 @@ func (fd *food) GetFoodByName(ctx context.Context, name string) (db.Meal, error)
 		MealID:     food.MealID,
 		Name:       food.Name,
 		Price:      food.Price,
+		ImgUrl:     food.ImgUrl,
 		Available:  food.Available,
 		CreatedAt:  food.CreatedAt,
 		ModifiedAt: food.ModifiedAt,
