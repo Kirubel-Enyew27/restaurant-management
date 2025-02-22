@@ -40,6 +40,7 @@ func (fd *Food) AddFood(ctx context.Context, meal db.Meal) (db.Meal, error) {
 	if err := validation.ValidateStruct(&meal,
 		validation.Field(&meal.Name, validation.Required),
 		validation.Field(&meal.Price, validation.Required),
+		validation.Field(&meal.ImgUrl, validation.Required),
 	); err != nil {
 		fd.log.Error("failed to validate input", zap.Error(err))
 		return db.Meal{}, errors.ErrInvalidUserInput.Wrap(err, "validation failed")
@@ -72,6 +73,7 @@ func (fd *Food) UpdateFood(ctx context.Context, mealID string, req dto.FoodUpdat
 		MealID:    mealUUID,
 		Name:      req.Name,
 		Price:     req.Price,
+		ImgUrl:    req.ImgUrl,
 		Available: req.Available,
 	}
 

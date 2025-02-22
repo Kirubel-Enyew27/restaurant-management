@@ -22,13 +22,13 @@ RETURNING meal_id, name, img_url, price, available, created_at, modified_at
 type CreateMealParams struct {
 	Name   string
 	Price  decimal.Decimal
-	ImgUrl sql.NullString
+	ImgUrl string
 }
 
 type CreateMealRow struct {
 	MealID     uuid.UUID
 	Name       string
-	ImgUrl     sql.NullString
+	ImgUrl     string
 	Price      decimal.Decimal
 	Available  sql.NullBool
 	CreatedAt  sql.NullTime
@@ -68,7 +68,7 @@ FROM meals
 type GetAllMealsRow struct {
 	MealID     uuid.UUID
 	Name       string
-	ImgUrl     sql.NullString
+	ImgUrl     string
 	Price      decimal.Decimal
 	Available  sql.NullBool
 	CreatedAt  sql.NullTime
@@ -112,7 +112,7 @@ WHERE meal_id = $1
 type GetMealByIDRow struct {
 	MealID     uuid.UUID
 	Name       string
-	ImgUrl     sql.NullString
+	ImgUrl     string
 	Price      decimal.Decimal
 	Available  sql.NullBool
 	CreatedAt  sql.NullTime
@@ -143,7 +143,7 @@ WHERE name = $1
 type GetMealByNameRow struct {
 	MealID     uuid.UUID
 	Name       string
-	ImgUrl     sql.NullString
+	ImgUrl     string
 	Price      decimal.Decimal
 	Available  sql.NullBool
 	CreatedAt  sql.NullTime
@@ -188,7 +188,7 @@ type UpdateMealParams struct {
 type UpdateMealRow struct {
 	MealID     uuid.UUID
 	Name       string
-	ImgUrl     sql.NullString
+	ImgUrl     string
 	Price      decimal.Decimal
 	Available  sql.NullBool
 	CreatedAt  sql.NullTime

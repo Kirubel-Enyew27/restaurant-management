@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 )
 
@@ -37,7 +38,13 @@ func (fd *food) AddFood(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), fd.contextTimeout)
 	defer cancel()
 
-	var req db.Meal
+	type Meal struct {
+		Name   string          `json:"name" binding:"required"`
+		ImgUrl string          `json:"img_url" binding:"required"`
+		Price  decimal.Decimal `json:"price" binding:"required"`
+	}
+
+	req := Meal{}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		err := errors.ErrBadRequest.Wrap(err, "failed to bind request body")
@@ -46,7 +53,13 @@ func (fd *food) AddFood(c *gin.Context) {
 		return
 	}
 
-	registeredFood, err := fd.foodModule.AddFood(ctx, req)
+	meal := db.Meal{
+		Name:   req.Name,
+		Price:  req.Price,
+		ImgUrl: req.ImgUrl,
+	}
+
+	registeredFood, err := fd.foodModule.AddFood(ctx, meal)
 	if err != nil {
 		_ = c.Error(err)
 		return

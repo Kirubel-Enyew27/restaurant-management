@@ -1,0 +1,1 @@
+ALTER TABLE meals ALTER COLUMN img_url SET NOT NULL;

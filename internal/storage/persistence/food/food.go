@@ -142,8 +142,8 @@ func (fd *food) UpdateFood(ctx context.Context, meal db.Meal) (db.Meal, error) {
 	if meal.Name != "" {
 		updateParams.Name = sql.NullString{String: meal.Name, Valid: true}
 	}
-	if meal.ImgUrl.String != "" {
-		updateParams.ImgUrl = sql.NullString{String: meal.ImgUrl.String, Valid: true}
+	if meal.ImgUrl != "" {
+		updateParams.ImgUrl = sql.NullString{String: meal.ImgUrl, Valid: true}
 	}
 	if meal.Price.IsZero() == false {
 		updateParams.Price = decimal.NullDecimal{Decimal: meal.Price, Valid: true}
