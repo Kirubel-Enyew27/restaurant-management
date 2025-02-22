@@ -80,7 +80,7 @@ func Intiate() {
 	sampleLogger.Info("initializing server")
 	server := gin.New()
 	gin.SetMode(gin.DebugMode)
-	server.Use(middleware.ErrorHandler())
+	server.Use(middleware.CORSMiddleware(), middleware.ErrorHandler())
 	sampleLogger.Info("server initialized")
 
 	sampleLogger.Info("initializing router")
