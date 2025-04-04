@@ -10,6 +10,7 @@ type Customer interface {
 	Register(ctx context.Context, user db.User) (db.User, error)
 	Login(ctx context.Context, user db.User) (string, error)
 	GetUsers(ctx context.Context) ([]db.User, error)
+	GetUserByID(ctx context.Context, userID string) (db.User, error)
 	UpdateUser(ctx context.Context, param string, req dto.UpdateRequest) (db.User, error)
 	DeleteUser(ctx context.Context, userID string) error
 }

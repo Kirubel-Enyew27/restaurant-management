@@ -93,6 +93,21 @@ func (cstmr *customer) GetCustomers(c *gin.Context) {
 
 }
 
+func (cstmr *customer) GetCustomerByID(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), cstmr.contextTimeout)
+	defer cancel()
+
+	userID := c.Param("id")
+	user, err := cstmr.customerModule.GetUserByID(ctx, userID)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	response.SendSuccessResponse(c, http.StatusOK, user, nil)
+
+}
+
 func (cstmr *customer) UpdateCustomer(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), cstmr.contextTimeout)
 	defer cancel()

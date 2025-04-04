@@ -94,6 +94,17 @@ func (c *Customer) GetUsers(ctx context.Context) ([]db.User, error) {
 	return c.storage.GetCustomers(ctx)
 }
 
+func (c *Customer) GetUserByID(ctx context.Context, userID string) (db.User, error) {
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		c.logger.Error("failed to parse user id", zap.Error(err))
+		return db.User{}, errors.ErrInvalidUserInput.Wrap(err, "invalid user id")
+	}
+
+	return c.storage.GetCustomerByID(ctx, userUUID)
+
+}
+
 func (c *Customer) UpdateUser(ctx context.Context, userID string, req dto.UpdateRequest) (db.User, error) {
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {

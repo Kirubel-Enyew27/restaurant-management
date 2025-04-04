@@ -8,6 +8,7 @@ type Customer interface {
 	Register(c *gin.Context)
 	Login(c *gin.Context)
 	GetCustomers(c *gin.Context)
+	GetCustomerByID(c *gin.Context)
 	UpdateCustomer(c *gin.Context)
 	DeleteCustomer(c *gin.Context)
 }
