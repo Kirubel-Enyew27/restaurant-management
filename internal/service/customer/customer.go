@@ -82,7 +82,7 @@ func (c *Customer) Login(ctx context.Context, user db.User) (string, error) {
 	}
 
 	expirationTime := time.Now().Add(constant.TokenExpiration)
-	token, err := utils.GenerateJWT(user.UserID.String(), expirationTime, c.logger)
+	token, err := utils.GenerateJWT(registeredUser, expirationTime, c.logger)
 	if err != nil {
 		return "", err
 	}

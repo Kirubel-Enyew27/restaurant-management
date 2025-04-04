@@ -4,15 +4,18 @@ import (
 	"fmt"
 	"os"
 	"restaurant/internal/constant/errors"
+	"restaurant/internal/constant/model/db"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type Claims struct {
-	Username string `json:"username"`
+	ID       uuid.UUID `json:"id"`
+	Username string    `json:"username"`
 	jwt.RegisteredClaims
 }
 
@@ -34,9 +37,10 @@ func VerifyPassword(hashedPassword, password string, logger *zap.Logger) error {
 	return nil
 }
 
-func GenerateJWT(username string, expirationTime time.Time, logger *zap.Logger) (string, error) {
-	claims := &Claims{
-		Username: username,
+func GenerateJWT(user db.User, expirationTime time.Time, logger *zap.Logger) (string, error) {
+	claims := Claims{
+		ID:       user.UserID,
+		Username: user.Username,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
