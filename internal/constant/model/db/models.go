@@ -39,10 +39,11 @@ type OrderItem struct {
 }
 
 type User struct {
-	UserID     uuid.UUID
-	Username   string
-	Email      string
-	Password   string
-	CreatedAt  sql.NullTime
-	ModifiedAt sql.NullTime
+	UserID         uuid.UUID
+	Username       string
+	Email          string
+	Password       string
+	CreatedAt      sql.NullTime
+	ModifiedAt     sql.NullTime
+	ProfilePicture sql.NullString
 }

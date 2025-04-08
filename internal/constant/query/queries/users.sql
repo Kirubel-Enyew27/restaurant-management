@@ -1,21 +1,21 @@
 -- name: CreateUser :one
-INSERT INTO users (username, email, password)
-VALUES ($1, $2, $3)
-RETURNING user_id, username, email, password, created_at, modified_at;
+INSERT INTO users (username, email, password, profile_picture)
+VALUES ($1, $2, $3, $4)
+RETURNING user_id, username, email, password, profile_picture, created_at, modified_at;
 
 
 -- name: GetUserByID :one
-SELECT user_id, username, email, password, created_at, modified_at
+SELECT user_id, username, email, password, profile_picture, created_at, modified_at
 FROM users
 WHERE user_id = $1;
 
 -- name: GetUserByUsername :one
-SELECT user_id, username, email, password, created_at, modified_at
+SELECT user_id, username, email, password, profile_picture, created_at, modified_at
 FROM users
 WHERE username = $1;
 
 -- name: GetUserByEmail :one
-SELECT user_id, username, email, password, created_at, modified_at
+SELECT user_id, username, email, password, profile_picture, created_at, modified_at
 FROM users
 WHERE email = $1;
 
@@ -25,6 +25,8 @@ SET
     username = COALESCE(sqlc.narg('username'), username), 
     email = COALESCE(sqlc.narg('email'), email), 
     password = COALESCE(sqlc.narg('password'), password),
+    profile_picture = COALESCE(sqlc.narg('profile_picture'), profile_picture),
+
     modified_at = now()
 WHERE user_id = $1
 RETURNING *;
@@ -34,6 +36,6 @@ DELETE FROM users
 WHERE user_id = $1;
 
 -- name: ListUsers :many
-SELECT user_id, username, email, password, created_at, modified_at
+SELECT user_id, username, email, password, profile_picture, created_at, modified_at
 FROM users
 ORDER BY created_at DESC;

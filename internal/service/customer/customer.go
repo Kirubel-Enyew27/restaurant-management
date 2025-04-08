@@ -2,6 +2,7 @@ package customer
 
 import (
 	"context"
+	"database/sql"
 	"restaurant/internal/constant"
 	"restaurant/internal/constant/errors"
 	"restaurant/internal/constant/model/db"
@@ -121,10 +122,11 @@ func (c *Customer) UpdateUser(ctx context.Context, userID string, req dto.Update
 	}
 
 	user := db.User{
-		UserID:   userUUID,
-		Username: req.Username,
-		Password: req.Password,
-		Email:    req.Email,
+		UserID:         userUUID,
+		Username:       req.Username,
+		Password:       req.Password,
+		Email:          req.Email,
+		ProfilePicture: sql.NullString{String: req.ProfilePicture},
 	}
 
 	return c.storage.UpdateCustomer(ctx, user)

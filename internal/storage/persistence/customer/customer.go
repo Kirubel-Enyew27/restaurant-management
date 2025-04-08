@@ -39,11 +39,13 @@ func (c *customer) Register(ctx context.Context, user db.User) (db.User, error) 
 	}
 
 	registeredUser := db.User{
-		UserID:    newUser.UserID,
-		Username:  newUser.Username,
-		Password:  newUser.Password,
-		Email:     newUser.Email,
-		CreatedAt: newUser.CreatedAt,
+		UserID:         newUser.UserID,
+		Username:       newUser.Username,
+		Password:       newUser.Password,
+		Email:          newUser.Email,
+		ProfilePicture: user.ProfilePicture,
+		CreatedAt:      newUser.CreatedAt,
+		ModifiedAt:     user.ModifiedAt,
 	}
 
 	return registeredUser, nil
@@ -61,11 +63,13 @@ func (c *customer) GetUserByUsername(ctx context.Context, username string) (db.U
 	}
 
 	existingUser := db.User{
-		UserID:    user.UserID,
-		Username:  user.Username,
-		Password:  user.Password,
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt,
+		UserID:         user.UserID,
+		Username:       user.Username,
+		Password:       user.Password,
+		Email:          user.Email,
+		ProfilePicture: user.ProfilePicture,
+		CreatedAt:      user.CreatedAt,
+		ModifiedAt:     user.ModifiedAt,
 	}
 
 	return existingUser, nil
@@ -82,11 +86,13 @@ func (c *customer) GetUserByEmail(ctx context.Context, email string) (db.User, e
 		return db.User{}, errors.ErrUnableToGet.Wrap(err, "failed to get user")
 	}
 	existingUser := db.User{
-		UserID:    user.UserID,
-		Username:  user.Username,
-		Password:  user.Password,
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt,
+		UserID:         user.UserID,
+		Username:       user.Username,
+		Password:       user.Password,
+		Email:          user.Email,
+		ProfilePicture: user.ProfilePicture,
+		CreatedAt:      user.CreatedAt,
+		ModifiedAt:     user.ModifiedAt,
 	}
 
 	return existingUser, nil
@@ -107,10 +113,13 @@ func (c *customer) GetCustomers(ctx context.Context) ([]db.User, error) {
 
 	for i, user := range users {
 		fetchedUsers[i] = db.User{
-			UserID:   user.UserID,
-			Username: user.Username,
-			Password: user.Password,
-			Email:    user.Email,
+			UserID:         user.UserID,
+			Username:       user.Username,
+			Password:       user.Password,
+			Email:          user.Email,
+			ProfilePicture: user.ProfilePicture,
+			CreatedAt:      user.CreatedAt,
+			ModifiedAt:     user.ModifiedAt,
 		}
 	}
 
@@ -128,16 +137,25 @@ func (c *customer) GetCustomerByID(ctx context.Context, userID uuid.UUID) (db.Us
 		return db.User{}, errors.ErrUnableToGet.Wrap(err, "failed to get user")
 	}
 
-	return user, nil
+	return db.User{
+		UserID:         user.UserID,
+		Username:       user.Username,
+		Email:          user.Email,
+		Password:       user.Password,
+		ProfilePicture: user.ProfilePicture,
+		CreatedAt:      user.CreatedAt,
+		ModifiedAt:     user.ModifiedAt,
+	}, nil
 
 }
 
 func (c *customer) UpdateCustomer(ctx context.Context, user db.User) (db.User, error) {
 	updateParams := db.UpdateUserParams{
-		UserID:   user.UserID,
-		Username: sql.NullString{}, // Default to an empty nullable string
-		Password: sql.NullString{}, // Default to an empty nullable string
-		Email:    sql.NullString{}, // Default to an empty nullable string
+		UserID:         user.UserID,
+		Username:       sql.NullString{}, // Default to an empty nullable string
+		Password:       sql.NullString{}, // Default to an empty nullable string
+		Email:          sql.NullString{}, // Default to an empty nullable string
+		ProfilePicture: sql.NullString{}, // Default to an empty nullable string
 	}
 
 	// Set values if non-empty
@@ -150,7 +168,9 @@ func (c *customer) UpdateCustomer(ctx context.Context, user db.User) (db.User, e
 	if user.Email != "" {
 		updateParams.Email = sql.NullString{String: user.Email, Valid: true}
 	}
-
+	if user.ProfilePicture.String != "" {
+		updateParams.ProfilePicture = sql.NullString{String: user.ProfilePicture.String, Valid: true}
+	}
 	updatedUser, err := c.db.Queries.UpdateUser(ctx, updateParams)
 	if err != nil {
 		if err == pgx.ErrNoRows {

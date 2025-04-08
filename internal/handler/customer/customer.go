@@ -2,13 +2,18 @@ package customer
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"restaurant/internal/constant/errors"
 	"restaurant/internal/constant/model/db"
 	"restaurant/internal/constant/model/dto"
 	"restaurant/internal/constant/model/response"
 	"restaurant/internal/handler"
 	"restaurant/internal/service"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -146,5 +151,67 @@ func (cstmr *customer) DeleteCustomer(c *gin.Context) {
 	}
 
 	response.SendSuccessResponse(c, http.StatusOK, err, nil)
+
+}
+
+func (cstmr *customer) UploadProfilePicture(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), cstmr.contextTimeout)
+	defer cancel()
+
+	userID := c.Param("id")
+
+	// Parse multipart form file
+	file, header, err := c.Request.FormFile("profile_picture")
+	if err != nil {
+		err := errors.ErrBadRequest.Wrap(err, "failed to bind request body")
+		cstmr.logger.Error("invalid request body", zap.Error(err))
+		_ = c.Error(err)
+		return
+	}
+	defer file.Close()
+
+	// Simple file extension check
+	ext := strings.ToLower(filepath.Ext(header.Filename))
+	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" {
+		err := errors.ErrBadRequest.New("Only JPG, JPEG or PNG images are allowed")
+		cstmr.logger.Error("invalid request body", zap.Error(err))
+		_ = c.Error(err)
+		return
+	}
+
+	// Create destination path
+	uploadDir := "uploads/"
+	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
+		os.MkdirAll(uploadDir, os.ModePerm)
+	}
+	filename := fmt.Sprintf("%s%s%s", uploadDir, userID, ext)
+
+	// Save file
+	out, err := os.Create(filename)
+	if err != nil {
+		err := errors.ErrInternalServerError.Wrap(err, "Unable to save file")
+		cstmr.logger.Error("Unable to save file", zap.Error(err))
+		_ = c.Error(err)
+		return
+	}
+	defer out.Close()
+
+	if _, err := io.Copy(out, file); err != nil {
+		err := errors.ErrInternalServerError.Wrap(err, "Failed to write file")
+		cstmr.logger.Error("Failed to write file", zap.Error(err))
+		_ = c.Error(err)
+		return
+	}
+
+	// Update profile picture in the database
+	imagePath := fmt.Sprintf("/%s", filename)
+	reqBody := dto.UpdateRequest{ProfilePicture: imagePath}
+	updatedUser, err := cstmr.customerModule.UpdateUser(ctx, userID, reqBody)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	response.SendSuccessResponse(c, http.StatusOK, updatedUser, nil)
 
 }

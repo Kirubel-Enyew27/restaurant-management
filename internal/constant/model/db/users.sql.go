@@ -13,25 +13,42 @@ import (
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (username, email, password)
-VALUES ($1, $2, $3)
-RETURNING user_id, username, email, password, created_at, modified_at
+INSERT INTO users (username, email, password, profile_picture)
+VALUES ($1, $2, $3, $4)
+RETURNING user_id, username, email, password, profile_picture, created_at, modified_at
 `
 
 type CreateUserParams struct {
-	Username string
-	Email    string
-	Password string
+	Username       string
+	Email          string
+	Password       string
+	ProfilePicture sql.NullString
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, createUser, arg.Username, arg.Email, arg.Password)
-	var i User
+type CreateUserRow struct {
+	UserID         uuid.UUID
+	Username       string
+	Email          string
+	Password       string
+	ProfilePicture sql.NullString
+	CreatedAt      sql.NullTime
+	ModifiedAt     sql.NullTime
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
+	row := q.db.QueryRow(ctx, createUser,
+		arg.Username,
+		arg.Email,
+		arg.Password,
+		arg.ProfilePicture,
+	)
+	var i CreateUserRow
 	err := row.Scan(
 		&i.UserID,
 		&i.Username,
 		&i.Email,
 		&i.Password,
+		&i.ProfilePicture,
 		&i.CreatedAt,
 		&i.ModifiedAt,
 	)
@@ -49,19 +66,30 @@ func (q *Queries) DeleteUser(ctx context.Context, userID uuid.UUID) error {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT user_id, username, email, password, created_at, modified_at
+SELECT user_id, username, email, password, profile_picture, created_at, modified_at
 FROM users
 WHERE email = $1
 `
 
-func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
+type GetUserByEmailRow struct {
+	UserID         uuid.UUID
+	Username       string
+	Email          string
+	Password       string
+	ProfilePicture sql.NullString
+	CreatedAt      sql.NullTime
+	ModifiedAt     sql.NullTime
+}
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
 	row := q.db.QueryRow(ctx, getUserByEmail, email)
-	var i User
+	var i GetUserByEmailRow
 	err := row.Scan(
 		&i.UserID,
 		&i.Username,
 		&i.Email,
 		&i.Password,
+		&i.ProfilePicture,
 		&i.CreatedAt,
 		&i.ModifiedAt,
 	)
@@ -69,19 +97,30 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT user_id, username, email, password, created_at, modified_at
+SELECT user_id, username, email, password, profile_picture, created_at, modified_at
 FROM users
 WHERE user_id = $1
 `
 
-func (q *Queries) GetUserByID(ctx context.Context, userID uuid.UUID) (User, error) {
+type GetUserByIDRow struct {
+	UserID         uuid.UUID
+	Username       string
+	Email          string
+	Password       string
+	ProfilePicture sql.NullString
+	CreatedAt      sql.NullTime
+	ModifiedAt     sql.NullTime
+}
+
+func (q *Queries) GetUserByID(ctx context.Context, userID uuid.UUID) (GetUserByIDRow, error) {
 	row := q.db.QueryRow(ctx, getUserByID, userID)
-	var i User
+	var i GetUserByIDRow
 	err := row.Scan(
 		&i.UserID,
 		&i.Username,
 		&i.Email,
 		&i.Password,
+		&i.ProfilePicture,
 		&i.CreatedAt,
 		&i.ModifiedAt,
 	)
@@ -89,19 +128,30 @@ func (q *Queries) GetUserByID(ctx context.Context, userID uuid.UUID) (User, erro
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT user_id, username, email, password, created_at, modified_at
+SELECT user_id, username, email, password, profile_picture, created_at, modified_at
 FROM users
 WHERE username = $1
 `
 
-func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
+type GetUserByUsernameRow struct {
+	UserID         uuid.UUID
+	Username       string
+	Email          string
+	Password       string
+	ProfilePicture sql.NullString
+	CreatedAt      sql.NullTime
+	ModifiedAt     sql.NullTime
+}
+
+func (q *Queries) GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error) {
 	row := q.db.QueryRow(ctx, getUserByUsername, username)
-	var i User
+	var i GetUserByUsernameRow
 	err := row.Scan(
 		&i.UserID,
 		&i.Username,
 		&i.Email,
 		&i.Password,
+		&i.ProfilePicture,
 		&i.CreatedAt,
 		&i.ModifiedAt,
 	)
@@ -109,25 +159,36 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT user_id, username, email, password, created_at, modified_at
+SELECT user_id, username, email, password, profile_picture, created_at, modified_at
 FROM users
 ORDER BY created_at DESC
 `
 
-func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
+type ListUsersRow struct {
+	UserID         uuid.UUID
+	Username       string
+	Email          string
+	Password       string
+	ProfilePicture sql.NullString
+	CreatedAt      sql.NullTime
+	ModifiedAt     sql.NullTime
+}
+
+func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
 	rows, err := q.db.Query(ctx, listUsers)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []User
+	var items []ListUsersRow
 	for rows.Next() {
-		var i User
+		var i ListUsersRow
 		if err := rows.Scan(
 			&i.UserID,
 			&i.Username,
 			&i.Email,
 			&i.Password,
+			&i.ProfilePicture,
 			&i.CreatedAt,
 			&i.ModifiedAt,
 		); err != nil {
@@ -147,16 +208,19 @@ SET
     username = COALESCE($2, username), 
     email = COALESCE($3, email), 
     password = COALESCE($4, password),
+    profile_picture = COALESCE($5, profile_picture),
+
     modified_at = now()
 WHERE user_id = $1
-RETURNING user_id, username, email, password, created_at, modified_at
+RETURNING user_id, username, email, password, created_at, modified_at, profile_picture
 `
 
 type UpdateUserParams struct {
-	UserID   uuid.UUID
-	Username sql.NullString
-	Email    sql.NullString
-	Password sql.NullString
+	UserID         uuid.UUID
+	Username       sql.NullString
+	Email          sql.NullString
+	Password       sql.NullString
+	ProfilePicture sql.NullString
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
@@ -165,6 +229,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		arg.Username,
 		arg.Email,
 		arg.Password,
+		arg.ProfilePicture,
 	)
 	var i User
 	err := row.Scan(
@@ -174,6 +239,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.Password,
 		&i.CreatedAt,
 		&i.ModifiedAt,
+		&i.ProfilePicture,
 	)
 	return i, err
 }
