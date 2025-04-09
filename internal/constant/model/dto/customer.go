@@ -10,3 +10,8 @@ type UpdateRequest struct {
 	ProfilePicture string    `json:"profile_picture,omitempty"` // Optional field, use *string for nullability
 
 }
+
+type ChangePassword struct {
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
+}

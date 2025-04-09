@@ -12,6 +12,7 @@ type Customer interface {
 	UpdateCustomer(c *gin.Context)
 	DeleteCustomer(c *gin.Context)
 	UploadProfilePicture(c *gin.Context)
+	ChangePassword(c *gin.Context)
 }
 type Order interface {
 	CreateOrder(c *gin.Context)

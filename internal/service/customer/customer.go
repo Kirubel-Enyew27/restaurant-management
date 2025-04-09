@@ -146,3 +146,37 @@ func (c *Customer) DeleteUser(ctx context.Context, userID string) error {
 
 	return c.storage.DeleteCustomer(ctx, user.UserID)
 }
+
+func (c *Customer) ChangePassword(ctx context.Context, userID string, pass dto.ChangePassword) (db.User, error) {
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		c.logger.Error("failed to parse user id", zap.Error(err))
+		return db.User{}, errors.ErrInvalidUserInput.Wrap(err, "invalid user id")
+	}
+
+	if pass.OldPassword == pass.NewPassword {
+		return db.User{}, errors.ErrInvalidUserInput.New("new password cannot be the same as the old password")
+	}
+
+	user, err := c.storage.GetCustomerByID(ctx, userUUID)
+	if err != nil {
+		return db.User{}, err
+	}
+
+	err = utils.VerifyPassword(user.Password, pass.OldPassword, c.logger)
+	if err != nil {
+		return db.User{}, err
+	}
+
+	newHashedPassword, err := utils.HashPassword(pass.NewPassword, c.logger)
+	if err != nil {
+		return db.User{}, err
+	}
+
+	updatedUser := db.User{
+		UserID:   userUUID,
+		Password: newHashedPassword,
+	}
+
+	return c.storage.UpdateCustomer(ctx, updatedUser)
+}

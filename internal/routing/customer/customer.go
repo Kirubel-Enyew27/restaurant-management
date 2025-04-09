@@ -50,6 +50,12 @@ func InitRoute(group *gin.RouterGroup, h handler.Customer,
 			Middlewares: []gin.HandlerFunc{},
 		},
 		{
+			Method:      http.MethodPatch,
+			Path:        "/customer/password/:id",
+			Handler:     h.ChangePassword,
+			Middlewares: []gin.HandlerFunc{},
+		},
+		{
 			Method:      http.MethodDelete,
 			Path:        "/customer/delete/:id",
 			Handler:     h.DeleteCustomer,

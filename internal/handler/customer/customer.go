@@ -215,3 +215,28 @@ func (cstmr *customer) UploadProfilePicture(c *gin.Context) {
 	response.SendSuccessResponse(c, http.StatusOK, updatedUser, nil)
 
 }
+
+func (cstmr *customer) ChangePassword(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), cstmr.contextTimeout)
+	defer cancel()
+
+	var reqBody dto.ChangePassword
+
+	if err := c.ShouldBindJSON(&reqBody); err != nil {
+		err := errors.ErrBadRequest.Wrap(err, "failed to bind request body")
+		cstmr.logger.Info("invalid request body", zap.Error(err))
+		_ = c.Error(err)
+		return
+	}
+
+	userID := c.Param("id")
+
+	updatedPassword, err := cstmr.customerModule.ChangePassword(ctx, userID, reqBody)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	response.SendSuccessResponse(c, http.StatusOK, updatedPassword, nil)
+
+}
