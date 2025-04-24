@@ -72,6 +72,14 @@ func (c *Customer) Register(ctx context.Context, user db.User) (db.User, error) 
 }
 
 func (c *Customer) Login(ctx context.Context, user db.User) (string, error) {
+	if err := validation.ValidateStruct(&user,
+		validation.Field(&user.Username, validation.Required),
+		validation.Field(&user.Password, validation.Required),
+	); err != nil {
+		c.logger.Error("failed to validate user input", zap.Error(err))
+		return "", errors.ErrInvalidUserInput.Wrap(err, "validation failed")
+	}
+
 	registeredUser, err := c.storage.GetUserByUsername(ctx, user.Username)
 	if err != nil {
 		return "", err
