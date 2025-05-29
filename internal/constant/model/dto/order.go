@@ -21,7 +21,7 @@ type CreateOrderRequest struct {
 	UserID      uuid.NullUUID   `json:"user_id,omitempty"`
 	OrderStatus string          `json:"order_status,omitempty"`
 	TotalPrice  decimal.Decimal `json:"total_price,omitempty"`
-	Item        []OrderItem
+	Item []OrderItem            `json:"item,omitempty"`
 }
 
 type OrderResponse struct {
