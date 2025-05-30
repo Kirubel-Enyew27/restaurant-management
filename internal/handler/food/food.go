@@ -82,6 +82,21 @@ func (fd *food) GetFoods(c *gin.Context) {
 
 }
 
+func (fd *food) GetFoodByID(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), fd.contextTimeout)
+	defer cancel()
+
+	foodID := c.Param("id")
+	food, err := fd.foodModule.GetFoodByID(ctx, foodID)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	response.SendSuccessResponse(c, http.StatusOK, food, nil)
+
+}
+
 func (fd *food) UpdateFood(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), fd.contextTimeout)
 	defer cancel()

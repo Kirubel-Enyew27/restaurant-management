@@ -53,13 +53,23 @@ func (fd *Food) AddFood(ctx context.Context, meal db.Meal) (db.Meal, error) {
 		fd.log.Error("food already exists", zap.Error(err))
 		return db.Meal{}, errors.ErrDataAlredyExist.Wrap(err, "food already exists")
 	}
-
 	return fd.storage.AddFood(ctx, meal)
 
 }
 
 func (fd *Food) GetFoods(ctx context.Context) ([]db.Meal, error) {
 	return fd.storage.GetFoods(ctx)
+}
+
+func (fd *Food) GetFoodByID(ctx context.Context, foodID string) (db.Meal, error) {
+	foodUUID, err := uuid.Parse(foodID)
+	if err != nil {
+		fd.log.Error("failed to parse food id", zap.Error(err))
+		return db.Meal{}, errors.ErrInvalidUserInput.Wrap(err, "invalid food id")
+	}
+
+	return fd.storage.GetFoodByID(ctx, foodUUID)
+
 }
 
 func (fd *Food) UpdateFood(ctx context.Context, mealID string, req dto.FoodUpdate) (db.Meal, error) {

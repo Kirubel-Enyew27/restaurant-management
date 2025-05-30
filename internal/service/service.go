@@ -24,6 +24,7 @@ type Order interface {
 type Food interface {
 	AddFood(ctx context.Context, meal db.Meal) (db.Meal, error)
 	GetFoods(ctx context.Context) ([]db.Meal, error)
+	GetFoodByID(ctx context.Context, foodID string) (db.Meal, error)
 	UpdateFood(ctx context.Context, mealID string, req dto.FoodUpdate) (db.Meal, error)
 	DeleteFood(ctx context.Context, mealID string) error
 }

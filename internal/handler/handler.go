@@ -23,6 +23,7 @@ type Order interface {
 type Food interface {
 	AddFood(c *gin.Context)
 	GetFoods(c *gin.Context)
+	GetFoodByID(c *gin.Context)
 	UpdateFood(c *gin.Context)
 	DeleteFood(c *gin.Context)
 }
