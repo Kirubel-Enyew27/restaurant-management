@@ -171,10 +171,16 @@ func (o *clientOrder) GetOrders(ctx context.Context) ([]dto.OrderResponse, error
 		}
 
 		if order.OrderItemID.Valid {
+			food, err := o.foodStorage.GetFoodByID(ctx, order.MealID.UUID)
+			if err != nil {
+				return nil, err
+			}
+
 			orderMap[order.OrderID].OrderItem = append(orderMap[order.OrderID].OrderItem, dto.OrderItem{
 				OrderItemID: order.OrderItemID,
 				OrderID:     uuid.NullUUID{UUID: order.OrderID, Valid: true},
 				MealID:      order.MealID,
+				Name:        food.Name,
 				Quantity:    order.Quantity,
 				Price:       order.Price.Decimal,
 			})

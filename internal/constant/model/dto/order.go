@@ -12,6 +12,7 @@ type OrderItem struct {
 	OrderItemID uuid.NullUUID   `json:"order_item_id,omitempty"`
 	OrderID     uuid.NullUUID   `json:"order_id,omitempty"`
 	MealID      uuid.NullUUID   `json:"meal_id,omitempty"`
+	Name        string          `json:"name,omitempty"`
 	Quantity    sql.NullInt32   `json:"quantity,omitempty"`
 	Price       decimal.Decimal `json:"price,omitempty"`
 }
@@ -21,7 +22,7 @@ type CreateOrderRequest struct {
 	UserID      uuid.NullUUID   `json:"user_id,omitempty"`
 	OrderStatus string          `json:"order_status,omitempty"`
 	TotalPrice  decimal.Decimal `json:"total_price,omitempty"`
-	Item []OrderItem            `json:"item,omitempty"`
+	Item        []OrderItem     `json:"item,omitempty"`
 }
 
 type OrderResponse struct {
