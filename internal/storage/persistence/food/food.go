@@ -184,3 +184,31 @@ func (fd *food) DeleteFood(ctx context.Context, mealID uuid.UUID) error {
 
 	return nil
 }
+
+func (fd *food) SearchFood(ctx context.Context, query string) ([]db.Meal, error) {
+	meals, err := fd.db.Queries.SearchMeal(ctx, sql.NullString{String: query, Valid: query != ""})
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			fd.log.Error("failed to search meals", zap.Error(err))
+			return nil, errors.ErrUnableToGet.Wrap(err, "meals not found")
+		}
+		fd.log.Error("failed to search meals", zap.Error(err))
+		return nil, errors.ErrUnableToGet.Wrap(err, "failed to search meals")
+	}
+
+	fetchedMeals := make([]db.Meal, len(meals))
+
+	for i, meal := range meals {
+		fetchedMeals[i] = db.Meal{
+			MealID:     meal.MealID,
+			Name:       meal.Name,
+			Price:      meal.Price,
+			ImgUrl:     meal.ImgUrl,
+			Available:  meal.Available,
+			CreatedAt:  meal.CreatedAt,
+			ModifiedAt: meal.ModifiedAt,
+		}
+	}
+
+	return fetchedMeals, nil
+}

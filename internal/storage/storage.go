@@ -15,6 +15,7 @@ type Food interface {
 	GetFoodByName(ctx context.Context, name string) (db.Meal, error)
 	UpdateFood(ctx context.Context, meal db.Meal) (db.Meal, error)
 	DeleteFood(ctx context.Context, mealID uuid.UUID) error
+	SearchFood(ctx context.Context, query string) ([]db.Meal, error)
 }
 
 type Order interface {
@@ -27,6 +28,8 @@ type Order interface {
 	UpdateOrder(ctx context.Context, order db.Order) (db.Order, error)
 	UpdateOrderItem(ctx context.Context, orderItem db.OrderItem) (db.OrderItem, error)
 	DeleteOrder(ctx context.Context, orderID uuid.UUID) error
+	GetOrderByMealID(ctx context.Context, mealID uuid.UUID) ([]db.GetOrderByMealIDRow, error)
+	GetOrderByUserID(ctx context.Context, userID uuid.UUID) ([]db.GetOrderByUserIDRow, error)
 }
 type Customer interface {
 	Register(ctx context.Context, user db.User) (db.User, error)
@@ -36,6 +39,7 @@ type Customer interface {
 	GetCustomerByID(ctx context.Context, userID uuid.UUID) (db.User, error)
 	UpdateCustomer(ctx context.Context, user db.User) (db.User, error)
 	DeleteCustomer(ctx context.Context, userID uuid.UUID) error
+	SearchCustomer(ctx context.Context, query string) ([]db.User, error)
 }
 type Price interface{}
 type FoodCache interface{}

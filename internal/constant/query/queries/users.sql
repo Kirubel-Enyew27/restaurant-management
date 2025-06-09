@@ -39,3 +39,6 @@ WHERE user_id = $1;
 SELECT user_id, username, email, password, profile_picture, created_at, modified_at
 FROM users
 ORDER BY created_at DESC;
+
+-- name: SearchUser :many
+SELECT * FROM users WHERE username ILIKE '%' || $1 || '%';

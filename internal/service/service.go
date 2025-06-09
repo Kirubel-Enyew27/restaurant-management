@@ -20,6 +20,7 @@ type Order interface {
 	GetOrders(ctx context.Context) ([]dto.OrderResponse, error)
 	UpdateOrder(ctx context.Context, orderID string, order dto.CreateOrderRequest) (dto.OrderResponse, error)
 	DeleteOrder(ctx context.Context, orderID string) error
+	SearchOrder(ctx context.Context, query string) ([]dto.OrderResponse, error)
 }
 type Food interface {
 	AddFood(ctx context.Context, meal db.Meal) (db.Meal, error)
@@ -27,5 +28,6 @@ type Food interface {
 	GetFoodByID(ctx context.Context, foodID string) (db.Meal, error)
 	UpdateFood(ctx context.Context, mealID string, req dto.FoodUpdate) (db.Meal, error)
 	DeleteFood(ctx context.Context, mealID string) error
+	SearchFood(ctx context.Context, query string) ([]db.Meal, error)
 }
 type Price interface{}

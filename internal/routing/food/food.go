@@ -43,6 +43,12 @@ func InitRoute(group *gin.RouterGroup, h handler.Food,
 			Handler:     h.DeleteFood,
 			Middlewares: []gin.HandlerFunc{},
 		},
+		{
+			Method:      http.MethodGet,
+			Path:        "/foods/search",
+			Handler:     h.SearchFood,
+			Middlewares: []gin.HandlerFunc{},
+		},
 	}
 
 	routing.RegisterRoute(group, foodRoutes, log)

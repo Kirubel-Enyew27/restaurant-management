@@ -104,3 +104,7 @@ func (fd *Food) DeleteFood(ctx context.Context, mealID string) error {
 
 	return fd.storage.DeleteFood(ctx, meal.MealID)
 }
+
+func (fd *Food) SearchFood(ctx context.Context, query string) ([]db.Meal, error) {
+	return fd.storage.SearchFood(ctx, query)
+}

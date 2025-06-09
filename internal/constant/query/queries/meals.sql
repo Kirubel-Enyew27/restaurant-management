@@ -31,3 +31,7 @@ RETURNING meal_id, name, img_url, price, available, created_at, modified_at;
 -- name: DeleteMeal :exec
 DELETE FROM meals
 WHERE meal_id = $1;
+
+-- name: SearchMeal :many
+SELECT * FROM meals WHERE name ILIKE '%' || $1 || '%';
+

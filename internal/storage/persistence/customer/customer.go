@@ -193,3 +193,31 @@ func (c *customer) DeleteCustomer(ctx context.Context, userID uuid.UUID) error {
 
 	return nil
 }
+
+func (c *customer) SearchCustomer(ctx context.Context, query string) ([]db.User, error) {
+	users, err := c.db.Queries.SearchUser(ctx, sql.NullString{String: query, Valid: query != ""})
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			c.log.Error("failed to get user", zap.Error(err))
+			return nil, errors.ErrUnableToGet.Wrap(err, "user not found")
+		}
+		c.log.Error("failed to get user", zap.Error(err))
+		return nil, errors.ErrUnableToGet.Wrap(err, "failed to get user")
+	}
+
+	fetchedUsers := make([]db.User, len(users))
+
+	for i, user := range users {
+		fetchedUsers[i] = db.User{
+			UserID:         user.UserID,
+			Username:       user.Username,
+			Password:       user.Password,
+			Email:          user.Email,
+			ProfilePicture: user.ProfilePicture,
+			CreatedAt:      user.CreatedAt,
+			ModifiedAt:     user.ModifiedAt,
+		}
+	}
+
+	return fetchedUsers, nil
+}

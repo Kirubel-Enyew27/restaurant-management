@@ -36,3 +36,39 @@ RETURNING order_id, user_id, order_status, total_price, created_at, modified_at;
 -- name: DeleteOrder :exec
 DELETE FROM orders
 WHERE order_id = $1;
+
+-- name: GetOrderByMealID :many
+	SELECT 
+		o.order_id,
+		o.user_id,
+		o.order_status,
+		o.total_price,
+		o.created_at,
+		o.modified_at,
+		oi.order_item_id,
+		oi.meal_id,
+		oi.quantity,
+		oi.price
+	FROM orders o
+	INNER JOIN order_items oi ON
+	o.order_id = oi.order_id 
+	WHERE oi.meal_id = $1
+	ORDER BY o.created_at DESC;
+
+-- name: GetOrderByUserID :many
+	SELECT 
+		o.order_id,
+		o.user_id,
+		o.order_status,
+		o.total_price,
+		o.created_at,
+		o.modified_at,
+		oi.order_item_id,
+		oi.meal_id,
+		oi.quantity,
+		oi.price
+	FROM orders o
+	INNER JOIN order_items oi ON
+	o.order_id = oi.order_id 
+	WHERE o.user_id = $1
+	ORDER BY o.created_at DESC;

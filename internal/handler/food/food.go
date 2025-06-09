@@ -137,3 +137,25 @@ func (fd *food) DeleteFood(c *gin.Context) {
 	response.SendSuccessResponse(c, http.StatusOK, err, nil)
 
 }
+
+func (fd *food) SearchFood(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), fd.contextTimeout)
+	defer cancel()
+
+	query := c.Query("q")
+	if query == "" {
+		err := errors.ErrBadRequest.New("query param 'q' is required")
+		fd.logger.Info("invalid request body", zap.Error(err))
+		_ = c.Error(err)
+		return
+	}
+
+	meals, err := fd.foodModule.SearchFood(ctx, query)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	response.SendSuccessResponse(c, http.StatusOK, meals, nil)
+
+}

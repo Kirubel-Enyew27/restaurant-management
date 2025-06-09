@@ -104,3 +104,24 @@ func (o *order) DeleteOrder(c *gin.Context) {
 
 	response.SendSuccessResponse(c, http.StatusOK, err, nil)
 }
+
+func (o *order) SearchOrder(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), o.contextTimeout)
+	defer cancel()
+
+	query := c.Query("q")
+	if query == "" {
+		err := errors.ErrBadRequest.New("query param 'q' is required")
+		o.logger.Info("invalid request body", zap.Error(err))
+		_ = c.Error(err)
+		return
+	}
+
+	orders, err := o.orderModule.SearchOrder(ctx, query)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	response.SendSuccessResponse(c, http.StatusOK, orders, nil)
+}

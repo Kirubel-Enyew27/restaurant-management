@@ -37,6 +37,12 @@ func InitRoute(group *gin.RouterGroup, h handler.Order,
 			Handler:     h.DeleteOrder,
 			Middlewares: []gin.HandlerFunc{},
 		},
+		{
+			Method:      http.MethodGet,
+			Path:        "/orders/search",
+			Handler:     h.SearchOrder,
+			Middlewares: []gin.HandlerFunc{},
+		},
 	}
 
 	routing.RegisterRoute(group, orderRoutes, log)

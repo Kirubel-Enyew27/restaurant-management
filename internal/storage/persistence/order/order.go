@@ -199,3 +199,31 @@ func (o *order) DeleteOrder(ctx context.Context, orderID uuid.UUID) error {
 
 	return nil
 }
+
+func (o *order) GetOrderByMealID(ctx context.Context, mealID uuid.UUID) ([]db.GetOrderByMealIDRow, error) {
+	order, err := o.db.Queries.GetOrderByMealID(ctx, uuid.NullUUID{UUID: mealID, Valid: mealID != uuid.Nil})
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			o.log.Error("failed to get order by meal id", zap.Error(err))
+			return nil, errors.ErrNoRecordFound.Wrap(err, "order not found")
+		}
+		o.log.Error("failed to get order by meal id", zap.Error(err))
+		return nil, errors.ErrUnableToGet.Wrap(err, "failed to get order")
+	}
+
+	return order, nil
+}
+
+func (o *order) GetOrderByUserID(ctx context.Context, userID uuid.UUID) ([]db.GetOrderByUserIDRow, error) {
+	order, err := o.db.Queries.GetOrderByUserID(ctx, uuid.NullUUID{UUID: userID, Valid: userID != uuid.Nil})
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			o.log.Error("failed to get order by user id", zap.Error(err))
+			return nil, errors.ErrNoRecordFound.Wrap(err, "order not found")
+		}
+		o.log.Error("failed to get order by user id", zap.Error(err))
+		return nil, errors.ErrUnableToGet.Wrap(err, "failed to get order")
+	}
+
+	return order, nil
+}

@@ -280,3 +280,101 @@ func (o *clientOrder) DeleteOrder(ctx context.Context, orderID string) error {
 
 	return o.storage.DeleteOrder(ctx, order.OrderID)
 }
+
+func (o *clientOrder) SearchOrder(ctx context.Context, query string) ([]dto.OrderResponse, error) {
+	meals, err := o.foodStorage.SearchFood(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	users, err := o.userStorage.SearchCustomer(ctx, query) //SearchUser to be implemented
+	if err != nil {
+		return nil, err
+	}
+
+	orderMap := make(map[uuid.UUID]*dto.OrderResponse)
+
+	for _, meal := range meals {
+		orders, err := o.storage.GetOrderByMealID(ctx, meal.MealID) //GetOrderMealID to be implemented
+		if err != nil {
+			return nil, err
+		}
+
+		for _, order := range orders {
+			if _, exists := orderMap[order.OrderID]; !exists {
+				user, err := o.userStorage.GetCustomerByID(ctx, order.UserID.UUID)
+				if err != nil {
+					return nil, err
+				}
+
+				orderMap[order.OrderID] = &dto.OrderResponse{
+					OrderID:     order.OrderID,
+					OrderStatus: order.OrderStatus,
+					TotalPrice:  order.TotalPrice,
+					User:        user,
+					OrderItem:   []dto.OrderItem{},
+					CreatedAt:   order.CreatedAt,
+					ModifiedAt:  order.ModifiedAt,
+				}
+			}
+
+			// if order.OrderItemID.Valid {
+			// 	food, err := o.foodStorage.GetFoodByID(ctx, order.MealID.UUID)
+			// 	if err != nil {
+			// 		return nil, err
+			// 	}
+
+			orderMap[order.OrderID].OrderItem = append(orderMap[order.OrderID].OrderItem, dto.OrderItem{
+				OrderItemID: uuid.NullUUID{UUID: order.OrderItemID, Valid: true},
+				OrderID:     uuid.NullUUID{UUID: order.OrderID, Valid: true},
+				MealID:      order.MealID,
+				Name:        meal.Name,
+				Quantity:    order.Quantity,
+				Price:       order.Price,
+			})
+		}
+	}
+
+	for _, user := range users {
+		orders, err := o.storage.GetOrderByUserID(ctx, user.UserID) //GetOrderByUserID to be implemented
+		if err != nil {
+			return nil, err
+		}
+		// if _, exists := orderMap[order.OrderID]; !exists {
+		// 	user, err := o.userStorage.GetCustomerByID(ctx, order.UserID.UUID)
+		// 	if err != nil {
+		// 		return nil, err
+		// 	}
+		for _, order := range orders {
+			orderMap[order.OrderID] = &dto.OrderResponse{
+				OrderID:     order.OrderID,
+				OrderStatus: order.OrderStatus,
+				TotalPrice:  order.TotalPrice,
+				User:        user,
+				OrderItem:   []dto.OrderItem{},
+				CreatedAt:   order.CreatedAt,
+				ModifiedAt:  order.ModifiedAt,
+			}
+
+			food, err := o.foodStorage.GetFoodByID(ctx, order.MealID.UUID)
+			if err != nil {
+				return nil, err
+			}
+
+			orderMap[order.OrderID].OrderItem = append(orderMap[order.OrderID].OrderItem, dto.OrderItem{
+				OrderItemID: uuid.NullUUID{UUID: order.OrderItemID, Valid: true},
+				OrderID:     uuid.NullUUID{UUID: order.OrderID, Valid: true},
+				MealID:      order.MealID,
+				Name:        food.Name,
+				Quantity:    order.Quantity,
+				Price:       order.Price,
+			})
+		}
+	}
+
+	fetchedOrders := make([]dto.OrderResponse, 0, len(orderMap))
+	for _, order := range orderMap {
+		fetchedOrders = append(fetchedOrders, *order)
+	}
+
+	return fetchedOrders, nil
+}

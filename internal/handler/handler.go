@@ -19,6 +19,7 @@ type Order interface {
 	GetOrders(c *gin.Context)
 	UpdateOrder(c *gin.Context)
 	DeleteOrder(c *gin.Context)
+	SearchOrder(c *gin.Context)
 }
 type Food interface {
 	AddFood(c *gin.Context)
@@ -26,4 +27,5 @@ type Food interface {
 	GetFoodByID(c *gin.Context)
 	UpdateFood(c *gin.Context)
 	DeleteFood(c *gin.Context)
+	SearchFood(c *gin.Context)
 }
