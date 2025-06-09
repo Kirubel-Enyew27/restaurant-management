@@ -188,3 +188,7 @@ func (c *Customer) ChangePassword(ctx context.Context, userID string, pass dto.C
 
 	return c.storage.UpdateCustomer(ctx, updatedUser)
 }
+
+func (c *Customer) SearchUser(ctx context.Context, query string) ([]db.User, error) {
+	return c.storage.SearchCustomer(ctx, query)
+}

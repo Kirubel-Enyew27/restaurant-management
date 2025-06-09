@@ -240,3 +240,25 @@ func (cstmr *customer) ChangePassword(c *gin.Context) {
 	response.SendSuccessResponse(c, http.StatusOK, updatedPassword, nil)
 
 }
+
+func (cstmr *customer) SearchCustomer(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), cstmr.contextTimeout)
+	defer cancel()
+
+	query := c.Query("q")
+	if query == "" {
+		err := errors.ErrBadRequest.New("query param 'q' is required")
+		cstmr.logger.Info("invalid request body", zap.Error(err))
+		_ = c.Error(err)
+		return
+	}
+
+	users, err := cstmr.customerModule.SearchUser(ctx, query)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	response.SendSuccessResponse(c, http.StatusOK, users, nil)
+
+}

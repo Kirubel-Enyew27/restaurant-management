@@ -14,6 +14,7 @@ type Customer interface {
 	UpdateUser(ctx context.Context, param string, req dto.UpdateRequest) (db.User, error)
 	DeleteUser(ctx context.Context, userID string) error
 	ChangePassword(ctx context.Context, userID string, pass dto.ChangePassword) (db.User, error)
+	SearchUser(ctx context.Context, query string) ([]db.User, error)
 }
 type Order interface {
 	CreateOrder(ctx context.Context, order dto.CreateOrderRequest) (dto.OrderResponse, error)
