@@ -5,6 +5,7 @@ go 1.22.0
 toolchain go1.22.10
 
 require (
+	github.com/cloudinary/cloudinary-go/v2 v2.10.0
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
@@ -25,6 +26,8 @@ require (
 
 require (
 	github.com/cockroachdb/cockroach-go/v2 v2.3.8 // indirect
+	github.com/creasty/defaults v1.7.0 // indirect
+	github.com/gorilla/schema v1.4.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/lib/pq v1.10.9 // indirect

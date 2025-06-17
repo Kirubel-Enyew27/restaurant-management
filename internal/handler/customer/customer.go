@@ -3,7 +3,6 @@ package customer
 import (
 	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -16,6 +15,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cloudinary/cloudinary-go/v2"
+	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -174,38 +175,39 @@ func (cstmr *customer) UploadProfilePicture(c *gin.Context) {
 	ext := strings.ToLower(filepath.Ext(header.Filename))
 	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" {
 		err := errors.ErrBadRequest.New("Only JPG, JPEG or PNG images are allowed")
-		cstmr.logger.Error("invalid request body", zap.Error(err))
+		cstmr.logger.Error("invalid file extension", zap.Error(err))
 		_ = c.Error(err)
 		return
 	}
 
-	// Create destination path
-	uploadDir := "uploads/"
-	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
-		os.MkdirAll(uploadDir, os.ModePerm)
-	}
-	filename := fmt.Sprintf("%s%s%s", uploadDir, userID, ext)
-
-	// Save file
-	out, err := os.Create(filename)
+	// Initialize Cloudinary client
+	cloudName := os.Getenv("CLOUD_NAME")
+	cloudApiKey := os.Getenv("CLOUD_API_KEY")
+	cloudSecretKey := os.Getenv("CLOUD_SECRET_KEY")
+	cld, err := cloudinary.NewFromParams(cloudName, cloudApiKey, cloudSecretKey)
 	if err != nil {
-		err := errors.ErrInternalServerError.Wrap(err, "Unable to save file")
-		cstmr.logger.Error("Unable to save file", zap.Error(err))
-		_ = c.Error(err)
-		return
-	}
-	defer out.Close()
-
-	if _, err := io.Copy(out, file); err != nil {
-		err := errors.ErrInternalServerError.Wrap(err, "Failed to write file")
-		cstmr.logger.Error("Failed to write file", zap.Error(err))
-		_ = c.Error(err)
+		cstmr.logger.Error("Cloudinary init failed", zap.Error(err))
+		_ = c.Error(errors.ErrInternalServerError.Wrap(err, "Cloudinary init failed"))
 		return
 	}
 
-	// Update profile picture in the database
-	imagePath := fmt.Sprintf("/%s", filename)
-	reqBody := dto.UpdateRequest{ProfilePicture: imagePath}
+	// Upload file to Cloudinary
+	overwrite := true
+	uploadResult, err := cld.Upload.Upload(ctx, file, uploader.UploadParams{
+		PublicID:  fmt.Sprint(userID),
+		Folder:    "profile_pictures",
+		Overwrite: &overwrite,
+	})
+	if err != nil {
+		cstmr.logger.Error("Cloudinary upload failed", zap.Error(err))
+		_ = c.Error(errors.ErrInternalServerError.Wrap(err, "Cloudinary upload failed"))
+		return
+	}
+
+	imageURL := uploadResult.SecureURL
+
+	// Update profile picture URL in DB
+	reqBody := dto.UpdateRequest{ProfilePicture: imageURL}
 	updatedUser, err := cstmr.customerModule.UpdateUser(ctx, userID, reqBody)
 	if err != nil {
 		_ = c.Error(err)
@@ -213,7 +215,6 @@ func (cstmr *customer) UploadProfilePicture(c *gin.Context) {
 	}
 
 	response.SendSuccessResponse(c, http.StatusOK, updatedUser, nil)
-
 }
 
 func (cstmr *customer) ChangePassword(c *gin.Context) {
