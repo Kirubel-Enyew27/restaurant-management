@@ -153,6 +153,9 @@ func (o *clientOrder) GetOrders(ctx context.Context) ([]dto.OrderResponse, error
 	orderMap := make(map[uuid.UUID]*dto.OrderResponse)
 
 	for _, order := range ordersWithItems {
+		if !order.UserID.Valid {
+			continue
+		}
 		if _, exists := orderMap[order.OrderID]; !exists {
 			user, err := o.userStorage.GetCustomerByID(ctx, order.UserID.UUID)
 			if err != nil {
