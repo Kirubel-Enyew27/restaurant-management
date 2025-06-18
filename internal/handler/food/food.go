@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"restaurant/internal/constant/errors"
-	"restaurant/internal/constant/model/db"
 	"restaurant/internal/constant/model/dto"
 	"restaurant/internal/constant/model/response"
 	"restaurant/internal/handler"
@@ -38,28 +37,35 @@ func (fd *food) AddFood(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), fd.contextTimeout)
 	defer cancel()
 
-	type Meal struct {
-		Name   string          `json:"name" binding:"required"`
-		ImgUrl string          `json:"img_url" binding:"required"`
-		Price  decimal.Decimal `json:"price" binding:"required"`
-	}
+	// Parse form values
+	name := c.PostForm("name")
+	priceStr := c.PostForm("price")
 
-	req := Meal{}
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		err := errors.ErrBadRequest.Wrap(err, "failed to bind request body")
-		fd.logger.Info("invalid request body", zap.Error(err))
+	// Parse price into decimal.Decimal
+	price, err := decimal.NewFromString(priceStr)
+	if err != nil {
+		err := errors.ErrBadRequest.Wrap(err, "invalid price format")
 		_ = c.Error(err)
 		return
 	}
 
-	meal := db.Meal{
-		Name:   req.Name,
-		Price:  req.Price,
-		ImgUrl: req.ImgUrl,
+	// Parse uploaded image
+	file, header, err := c.Request.FormFile("food_picture")
+	if err != nil {
+		err := errors.ErrBadRequest.Wrap(err, "image file is required")
+		_ = c.Error(err)
+		return
+	}
+	defer file.Close()
+
+	formData := dto.FormData{
+		Name:   name,
+		Price:  price,
+		File:   file,
+		Header: header,
 	}
 
-	registeredFood, err := fd.foodModule.AddFood(ctx, meal)
+	registeredFood, err := fd.foodModule.AddFood(ctx, formData)
 	if err != nil {
 		_ = c.Error(err)
 		return
