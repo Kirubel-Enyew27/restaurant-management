@@ -90,6 +90,7 @@ func (fd *Food) AddFood(ctx context.Context, data dto.FormData) (db.Meal, error)
 		fd.log.Error("Cloudinary upload failed", zap.Error(err))
 		return db.Meal{}, err
 	}
+	defer data.File.Close()
 
 	imageURL := uploadResult.SecureURL
 
@@ -118,19 +119,55 @@ func (fd *Food) GetFoodByID(ctx context.Context, foodID string) (db.Meal, error)
 
 }
 
-func (fd *Food) UpdateFood(ctx context.Context, mealID string, req dto.FoodUpdate) (db.Meal, error) {
+func (fd *Food) UpdateFood(ctx context.Context, mealID string, data dto.FormData) (db.Meal, error) {
+	var meal db.Meal
 	mealUUID, err := uuid.Parse(mealID)
 	if err != nil {
 		fd.log.Error("failed to parse meal id", zap.Error(err))
 		return db.Meal{}, errors.ErrInvalidUserInput.Wrap(err, "invalid meal id")
 	}
+	meal.MealID = mealUUID
+	if data.Name != "" {
+		meal.Name = data.Name
+	}
+	if !data.Price.IsZero() {
+		meal.Price = data.Price
+	}
+	if data.File != nil {
+		defer data.File.Close()
+		// Simple file extension check
+		ext := strings.ToLower(filepath.Ext(data.Header.Filename))
+		if ext != ".jpg" && ext != ".jpeg" && ext != ".png" {
+			err := errors.ErrBadRequest.New("Only JPG, JPEG or PNG images are allowed")
+			fd.log.Error("invalid file extension", zap.Error(err))
+			return db.Meal{}, err
+		}
 
-	meal := db.Meal{
-		MealID:    mealUUID,
-		Name:      req.Name,
-		Price:     req.Price,
-		ImgUrl:    req.ImgUrl,
-		Available: req.Available,
+		// Initialize Cloudinary client
+		cloudName := os.Getenv("CLOUD_NAME")
+		cloudApiKey := os.Getenv("CLOUD_API_KEY")
+		cloudSecretKey := os.Getenv("CLOUD_SECRET_KEY")
+		cld, err := cloudinary.NewFromParams(cloudName, cloudApiKey, cloudSecretKey)
+		if err != nil {
+			err := errors.ErrInternalServerError.Wrap(err, "Cloudinary init failed")
+			fd.log.Error("Cloudinary init failed", zap.Error(err))
+			return db.Meal{}, err
+		}
+
+		// Upload file to Cloudinary
+		overwrite := true
+		uploadResult, err := cld.Upload.Upload(ctx, data.File, uploader.UploadParams{
+			PublicID:  fmt.Sprint(uuid.New()),
+			Folder:    "food_pictures",
+			Overwrite: &overwrite,
+		})
+		if err != nil {
+			err := errors.ErrInternalServerError.Wrap(err, "Cloudinary upload failed")
+			fd.log.Error("Cloudinary upload failed", zap.Error(err))
+			return db.Meal{}, err
+		}
+
+		meal.ImgUrl = uploadResult.SecureURL
 	}
 
 	return fd.storage.UpdateFood(ctx, meal)

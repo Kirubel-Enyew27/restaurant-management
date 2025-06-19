@@ -56,7 +56,6 @@ func (fd *food) AddFood(c *gin.Context) {
 		_ = c.Error(err)
 		return
 	}
-	defer file.Close()
 
 	formData := dto.FormData{
 		Name:   name,
@@ -107,18 +106,40 @@ func (fd *food) UpdateFood(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), fd.contextTimeout)
 	defer cancel()
 
-	var reqBody dto.FoodUpdate
+	var formData dto.FormData
 
-	if err := c.ShouldBindJSON(&reqBody); err != nil {
-		err := errors.ErrBadRequest.Wrap(err, "failed to bind request body")
-		fd.logger.Info("invalid request body", zap.Error(err))
-		_ = c.Error(err)
+	formData.Name = c.PostForm("name")
+
+	priceStr := c.PostForm("price")
+	if priceStr != "" {
+		// Parse price into decimal.Decimal
+		price, err := decimal.NewFromString(priceStr)
+		if err != nil {
+			err := errors.ErrBadRequest.Wrap(err, "invalid price format")
+			_ = c.Error(err)
+			return
+		}
+		formData.Price = price
+	}
+
+	// Handle optional file upload
+	file, header, err := c.Request.FormFile("food_picture")
+	if err != nil && err != http.ErrMissingFile {
+		_ = c.Error(errors.ErrBadRequest.Wrap(err, "Failed to process uploaded image"))
 		return
+	}
+	if err == nil {
+		formData.File = file
+		formData.Header = header
 	}
 
 	mealID := c.Param("id")
+	if mealID == "" {
+		_ = c.Error(errors.ErrBadRequest.New("Missing meal ID in path"))
+		return
+	}
 
-	updatedUser, err := fd.foodModule.UpdateFood(ctx, mealID, reqBody)
+	updatedUser, err := fd.foodModule.UpdateFood(ctx, mealID, formData)
 	if err != nil {
 		_ = c.Error(err)
 		return
